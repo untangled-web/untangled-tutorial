@@ -5,6 +5,7 @@
                  [org.omcljs/om "1.0.0-alpha31-SNAPSHOT"]
                  [com.datomic/datomic-free "0.9.5350"]
                  [navis/untangled-client "0.4.5-SNAPSHOT"]
+                 [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.5"]
                  [navis/untangled-datomic "0.4.4"]]
 

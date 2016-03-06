@@ -11,6 +11,10 @@
     untangled-tutorial.F-Mutation
     untangled-tutorial.F-Mutation-Exercises
     untangled-tutorial.J-Advanced-Queries
-    untangled-tutorial.Z-Glossary))
+    untangled-tutorial.Z-Glossary
+    [devtools.core :as devtools]))
 
+(do
+  (devtools/enable-feature! :sanity-hints)
+  (devtools/install!))
 

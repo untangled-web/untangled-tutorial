@@ -1,11 +1,8 @@
 (ns untangled-tutorial.A-Introduction
-  (:require-macros
-    [cljs.test :refer [is]]
-    )
+  (:require-macros [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
-            ))
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
 (defcard-doc
   "# Introduction
@@ -28,9 +25,7 @@
 
   ")
 
-(defcard sample-card
-         (dom/div nil "The following number is calculated: " (+ 3 6))
-         )
+(defcard sample-card (dom/div nil "The following number is calculated: " (+ 3 6)))
 
 (defcard-doc
   "
@@ -44,11 +39,9 @@
            (dom/div nil "A single top-level element."
                     (dom/span nil (str "value of x: " (:x @state-atom)))
                     (dom/br nil)
-                    (dom/button #js {:onClick #(swap! state-atom update-in [:x] inc)} "Click me")
-                    ))
+                    (dom/button #js {:onClick #(swap! state-atom update-in [:x] inc)} "Click me")))
          {:x 2}                                             ; This is a map of initial state that devcards puts in an atom
-         {:inspect-data true}                               ; options....show me the current value of the data
-         )
+         {:inspect-data true})                              ; options....show me the current value of the data
 
 (defcard-doc
   "
@@ -95,6 +88,6 @@
   feel the latter is more important than the former, and once the source pulling is fixed it will be easy to
   fix the source and have all of the documentation automatically update.
 
-  [Let's start with the UI.](#!/om_tutorial.B_UI)
+  [Let's start with the UI.](#!/untangled_tutorial.B_UI)
 
   ")

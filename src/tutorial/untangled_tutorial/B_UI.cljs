@@ -1,11 +1,10 @@
 (ns untangled-tutorial.B-UI
   (:require-macros
-    [cljs.test :refer [is]]
-    )
+    [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
-            ))
+            cljsjs.d3
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
 (defui Widget
   Object
@@ -42,6 +41,12 @@
   Notice the use of `Object`. It indicates that the following list of method bodies (like in protocols) are being
   added to the general class. From an OO perspective, this is like saying \"my widget extends Object\". The
   `render` method is the only method you need, but you can also add in your own methods or React lifecycle methods.
+
+  In the author's opinion the render method should be a pure function whenever possible (avoiding component
+  local state if at all possible). Making your rendering pure means that if you ever feel the need to write
+  tests around how the UI works (say, for acceptance testing) that you can do so very easily. The lack
+  of local state means that the code tends to be so simple as to avoid most of the bugs that plague other
+  frameworks.
 
   ## React Lifecycle Methods
 
@@ -81,8 +86,7 @@
   ```
   (defcard props-card (prop-widget {:name \"Sam\"}))
   ```
-  "
-  )
+  ")
 
 (defcard props-card (prop-widget {:name "Sam"}))
 
@@ -107,8 +111,8 @@
   (render [this]
     (let [{:keys [people number]} (om/props this)]
       (dom/div nil
-        (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
-        (people-list people)))))
+               (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
+               (people-list people)))))
 
 (def root (om/factory Root))
 
@@ -155,12 +159,12 @@
     (let [{:keys [people number b]} (om/props this)
           {:keys [incHandler boolHandler]} (om/get-computed this)]
       (dom/div nil
-        ; code pprinter cannot deal with #js on rendering source. Using clj->js instead
-        (dom/button (clj->js {:onClick #(boolHandler)}) "Toggle Luck")
-        (dom/button (clj->js {:onClick #(incHandler)}) "Increment Number")
-        (dom/span nil (str "My " (if b "" "un") "lucky number is " number
-                        " and I have the following friends:"))
-        (people-list people)))))
+               ; code pprinter cannot deal with #js on rendering source. Using clj->js instead
+               (dom/button (clj->js {:onClick #(boolHandler)}) "Toggle Luck")
+               (dom/button (clj->js {:onClick #(incHandler)}) "Increment Number")
+               (dom/span nil (str "My " (if b "" "un") "lucky number is " number
+                                  " and I have the following friends:"))
+               (people-list people)))))
 
 (def root-computed (om/factory Root-computed))
 
@@ -199,15 +203,102 @@
   ")
 
 (defcard passing-callbacks-via-computed
-  (fn [data-atom-from-devcards _]
-    (let [prop-data @data-atom-from-devcards
-          sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
-                         :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
-          ]
-      (root-computed (om/computed prop-data sideband-data))))
-  {:number 42 :people [{:name "Sally"}] :b false}
-  {:inspect-data true
-   :history      true})
+         (fn [data-atom-from-devcards _]
+           (let [prop-data @data-atom-from-devcards
+                 sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
+                                :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
+                 ]
+             (root-computed (om/computed prop-data sideband-data))))
+         {:number 42 :people [{:name "Sally"}] :b false}
+         {:inspect-data true
+          :history      true})
+
+(defcard-doc
+  "
+
+  ## Stateful Components
+
+  Earlier we stress that your components should be stateless whenever possible. There are a few
+  notable exceptions that we have found useful (or even necessary):
+
+  - The Untangled support viewer shows each app state change. User input (each letter they type) can
+  be quite tedious to watch in a support viewer. Moving these kinds of interstitial form interactions
+  into local state causes little harm, and greatly enhances support. Om automatically hooks up local
+  state to input fields.
+  - External library integration. We use stateful components to make things like D3 visualizations.
+
+  ### Form inputs
+
+  Om already hooks local state to form elements. So, in fact, you have to override this to *not* use
+  component local state. For text controls we'd recommend you leave it this way. For other controls like
+  checkboxes it is probably best to override this (demonstrated later).
+
+  ### External Library State (a D3 example)
+
+  Say you want to draw something with D3. D3 has it's own DOM diffing algorithms, and you want to
+  make sure React doesn't muck with the DOM. The following component demonstrates1G
+  ")
+
+(defn render-squares [component props]
+  (let [svg (-> js/d3 (.select (dom/node component)))
+        data (clj->js (:squares props))
+        selection (-> svg
+                      (.selectAll "rect")
+                      (.data data (fn [d] (.-id d))))]
+    (-> selection
+        .enter
+        (.append "rect")
+        (.style "fill" (fn [d] (.-color d)))
+        (.attr "x" "0")
+        (.attr "y" "0")
+        .transition
+        (.attr "x" (fn [d] (.-x d)))
+        (.attr "y" (fn [d] (.-y d)))
+        (.attr "width" (fn [d] (.-size d)))
+        (.attr "height" (fn [d] (.-size d))))
+    (-> selection
+        .exit
+        (.transition)
+        (.style "opacity" "0")
+        (.remove))
+    false))
+
+(defui D3Thing
+  Object
+  (componentDidMount [this]
+    (render-squares this (om/props this)))
+  (shouldComponentUpdate [this next-props next-state]
+    (let [props (om/-next-props next-props this)]
+      (render-squares this props)
+      false))
+  (render [this]
+    (dom/svg #js {:width 100 :height 100 :viewBox "0 0 1000 1000"})))
+
+(def d3-thing (om/factory D3Thing))
+
+(defn random-square []
+  {
+   :id    (rand-int 10000000)
+   :x     (rand-int 900)
+   :y     (rand-int 900)
+   :size  (+ 50 (rand-int 300))
+   :color (case (rand-int 5)
+            0 "yellow"
+            1 "green"
+            2 "orange"
+            3 "blue"
+            4 "black")})
+
+(defn add-square [state] (swap! state update :squares conj (random-square)))
+
+(defcard sample-d3-component
+         (fn [state-atom _]
+           (dom/div nil
+                    (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
+                    (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
+                    (d3-thing @state-atom)))
+         {:squares []}
+         {:inspect-data true})
 
 (defcard-doc
   "
