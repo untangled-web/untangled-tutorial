@@ -10,9 +10,10 @@
   "
   # App Database
 
-  In this section we'll discuss the default database format used by Om for client state. The
-  database is completely pluggable (some people are using Datascript, for example), but the
-  default format solves the problem nicely, and uses very fast data structures.
+  In this section we'll discuss the database format used by Untangled for client state. Untangled
+  has chosen to not allow pluggable database formats. This allows the framework to do a lot of
+  heavy lifting for you, and so far has been very acceptable for the production applications
+  we've built with it.
 
   First, we'll describe the problem, and then show how Om's approach to storing app state solves it.
 
@@ -47,7 +48,7 @@
   Experienced readers will recognize that the solution is the one we've been using in databases
   for quite a long time: normalization...de-dupe the data!
 
-  In Om's default database format we do not place the *real* data in multiple places, but instead
+  In Untangled's database format we do not place the *real* data in multiple places, but instead
   use a special bit of data that acts like a database foreign key. Om calls these *idents*.
 
   Here's how it works:
@@ -147,7 +148,11 @@
   the UI query to reformat that data into the internal database format. We'll see more
   on that after we talk about queries.
 
-  If you chose to use an alternate database format, _then_ you'll have to manage the normalization
-  among other things (like merging in novelty).
+  As you get to more complicated applications you may chose to use Om's helper function `tree->db`
+  to auto-normalize different pieces of data and merge them togther to for a database. We have
+  also found hand-generating normalized state really isn't difficult, and is easier
+  for some to reason about.
+
+  You should definitely do the [database  exercises](#!/untangled_tutorial.C_App_Database_Exercises).
   ")
 

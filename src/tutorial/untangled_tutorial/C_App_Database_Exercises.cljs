@@ -70,3 +70,6 @@
            :canvas  {:data [{:x 1, :y 3}]}}}
         (om/db->tree '[{:main-panel [{:toolbar [{:tools [:label]}]}
                                      {:canvas [{:data [:x :y]}]}]}] ex3-uidb ex3-uidb))))
+
+(defcard-doc
+  "The solutions are in `src/tutorial/untangled_tutorial/app_database/solutions.cljs`")
