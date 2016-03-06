@@ -1,4 +1,4 @@
-(ns untangled-tutorial.F-Mutation-Exercises
+(ns untangled-tutorial.G-Mutation-Exercises
   (:require-macros [cljs.test :refer [is]] )
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]

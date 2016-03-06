@@ -1,4 +1,4 @@
-(ns untangled-tutorial.F-Mutation
+(ns untangled-tutorial.G-Mutation
   (:require-macros [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
@@ -13,6 +13,7 @@
 
   ## Overview
 
+
   Mutations are part of the query syntax, except they are invoked with `transact!` and dispath to your top-level
   mutation function instead of the read function. The mutations are meant to be thought of as top-level transactions
   which are abstract operations over your application state. The difference between a local mutation and a remote one is
@@ -23,26 +24,26 @@
   (om/transact! this-component '[(app/delete)])
   ```
 
-  which in turn will invoke the parser, and the parser will in turn call your mutate method with `key` set to
-  `app/delete` (the symbol).
+  Untangled reduces the amount of boilerplate you have to write since there is no need for a custom
+  Om parser. As such, to support a new abstract mutation you simply add methods to the
+  `untangled.client.mutations/mutate` multimethod.
 
-  One way to deal with this nicely is to use a multi-method, dispatched by symbol:
+  Your mutate function must be side-effect free so instead of doing the actual action, it must
+  return a map that can contain:
 
   ```
-  (defmulti mutate om/dispatch)
+  (ns my-mutations
+     (:require [untangled.client.mutations :as m]))
 
-  (defmethod mutate 'app/delete [env key params]
-     { :action (fn [] ...) })
+  (defmethod m/mutate 'app/delete [{:keys [state ast] :as env} k params]
+     {
+       ; A thunk to do the local db modifications
+       :action (fn []
+                 (swap! state ...))
 
-  (def my-parser (om/parser {:read read :mutate mutate}))
+       ; if you want this mutation to also be sent to the server
+       :remote true })
   ```
-
-  Your mutate function could be called multiple times (the parser runs for local and then each remote),
-  so you should be sure to return any actual thing you want to do as an `action` thunk, as shown, for any
-  local mutation.
-
-  If you're using the default database format, then your app state will just be a flat database, mostly
-  existing in tables that can be changed via `swap!` and `update-in`.
 
   ## Updating an item stored in a map
 
@@ -64,7 +65,7 @@
   The use of parameters means your mutate function will receive parameters, so you can implement this with:
 
   ```
-  (defn mutate  'app/set-name [{:keys [state] :as env} key {:keys [person name] :as params}]
+  (defmethod m/mutate 'app/set-name [{:keys [state] :as env} key {:keys [person name] :as params}]
     { :action (fn [] (swap! state update-in [:people/by-id person] assoc :person/name name))})
   ```
 
@@ -109,7 +110,14 @@
 
 
   To add a brand new person and make them a friend, you'd need to add them to the `:people/by-id` table and to the
-  `:people/friends` list:
+  `:people/friends` list with code like this:
+
+  ```
+  (swap! state assoc-in [:people/by-id 7] {:id 7 :person/name \"Andy\"})
+  (swap! state update :people/friends conj [:people/by-id 3])
+  ```
+
+  to result in the following app database state:
 
   ```
   { :people/friends [ [:people/by-id 1] [:people/by-id 2] [:people/by-id 7]]
