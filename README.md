@@ -8,8 +8,8 @@ exercises require you to extend and edit the code.
 
 There are two primary branches in this repository:
 
-`main`: The branch to use to complete the tutorial
-`solution`: A branch with all of the exercises completed
+- `main`: The branch to use to complete the tutorial
+- `solution`: A branch with all of the exercises completed
 
 ## What's inside?
 
@@ -86,9 +86,9 @@ Om library (on which much of the system is based):
 
 The following builds are configured in figwheel:
 
-`tutorial`: Devcards tutorial for the content listed above
-`client`: A full-stack application (that you extend as part of the tutorial)
-`test`: Tests for the client application (for you to see/extend)
+- `tutorial`: Devcards tutorial for the content listed above
+- `client`: A full-stack application (that you extend as part of the tutorial)
+- `test`: Tests for the client application (for you to see/extend)
 
 ### IntelliJ/Cursive
 
