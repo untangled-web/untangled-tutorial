@@ -1,5 +1,7 @@
 # Untangled Tutorial 
 
+NOTE: This tutorial requires Om alpha31+ which is not yet released. 
+
 This is an interactive tutorial for developing applications with 
 the Untangled web framework.
 
