@@ -213,32 +213,6 @@
          {:inspect-data true
           :history      true})
 
-(defcard-doc
-  "
-
-  ## Stateful Components
-
-  Earlier we stress that your components should be stateless whenever possible. There are a few
-  notable exceptions that we have found useful (or even necessary):
-
-  - The Untangled support viewer shows each app state change. User input (each letter they type) can
-  be quite tedious to watch in a support viewer. Moving these kinds of interstitial form interactions
-  into local state causes little harm, and greatly enhances support. Om automatically hooks up local
-  state to input fields.
-  - External library integration. We use stateful components to make things like D3 visualizations.
-
-  ### Form inputs
-
-  Om already hooks local state to form elements. So, in fact, you have to override this to *not* use
-  component local state. For text controls we'd recommend you leave it this way. For other controls like
-  checkboxes it is probably best to override this (demonstrated later).
-
-  ### External Library State (a D3 example)
-
-  Say you want to draw something with D3. D3 has it's own DOM diffing algorithms, and you want to
-  make sure React doesn't muck with the DOM. The following component demonstrates1G
-  ")
-
 (defn render-squares [component props]
   (let [svg (-> js/d3 (.select (dom/node component)))
         data (clj->js (:squares props))
@@ -272,9 +246,51 @@
       (render-squares this props)
       false))
   (render [this]
-    (dom/svg #js {:width 100 :height 100 :viewBox "0 0 1000 1000"})))
+    (dom/svg (clj->js {:style   {:backgroundColor "rgb(240,240,240)"}
+                       :width   200 :height 200
+                       :viewBox "0 0 1000 1000"}))))
 
 (def d3-thing (om/factory D3Thing))
+
+
+(defcard-doc
+  "
+
+  ## Stateful Components
+
+  Earlier we stress that your components should be stateless whenever possible. There are a few
+  notable exceptions that we have found useful (or even necessary):
+
+  - The Untangled support viewer shows each app state change. User input (each letter they type) can
+  be quite tedious to watch in a support viewer. Moving these kinds of interstitial form interactions
+  into local state causes little harm, and greatly enhances support. Om automatically hooks up local
+  state to input fields.
+  - External library integration. We use stateful components to make things like D3 visualizations.
+
+  ### Form inputs
+
+  Om already hooks local state to form elements. So, in fact, you have to override this to *not* use
+  component local state. For text controls we'd recommend you leave it this way. For other controls like
+  checkboxes it is probably best to override this (demonstrated later).
+
+  ### External Library State (a D3 example)
+
+  Say you want to draw something with D3. D3 has it's own DOM diffing algorithms, and you want to
+  make sure React doesn't muck with the DOM. The following component demonstrates how you would go about it.
+
+  First, the actual rendering code that expects the component and the props (which have to
+  be converted to JS data types to work) (See D3 Tutorials on the Web):
+  "
+
+  (dc/mkdn-pprint-source render-squares)
+
+  "And the component itself:"
+
+  (dc/mkdn-pprint-source D3Thing)
+  (dc/mkdn-pprint-source d3-thing)
+
+  "Here it is integrated into a dev card with some controls to manipulate the data:"
+  )
 
 (defn random-square []
   {
@@ -296,12 +312,22 @@
            (dom/div nil
                     (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
                     (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
+                    (dom/br nil)
+                    (dom/br nil)
                     (d3-thing @state-atom)))
          {:squares []}
          {:inspect-data true})
 
 (defcard-doc
   "
+
+  The things to note for this example are:
+
+  - We override the React lifecycle method `shouldComponentUpdate` to do the actual D3 update, and then return false.
+  This ensures React and D3 don't fight over the DOM for the component.
+  - We also override `componentDidMount` to do an initial render in D3.
+  - Note: As of Om 1.0.0 Alpha 30 the method of obtaining the properties differs a bit, as shown. This may have
+  changed since this writing.
 
   ## Important Notes and Further Reading
 
