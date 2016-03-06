@@ -3,7 +3,8 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.228"]
                  [org.omcljs/om "1.0.0-alpha31-SNAPSHOT"]
-                 [com.datomic/datomic-free "0.9.5350"]
+                 [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
+                 [commons-codec "1.10"]
                  [navis/untangled-client "0.4.5-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.5"]
@@ -91,9 +92,9 @@
 
   :profiles {
              :dev {
-                   :dependencies [[devcards "0.2.1-6"]
-                                  [figwheel-sidecar "0.5.0-6"]
-                                  [binaryage/devtools "0.5.2"]
+                   :dependencies [[devcards "0.2.1-6" :exclusions [org.omcljs/om]]
+                                  [figwheel-sidecar "0.5.0-6" :exclusions [ring/ring-core commons-fileupload clj-time joda-time]]
+                                  [binaryage/devtools "0.5.2" :exclusions [environ]]
                                   [cljsjs/codemirror "5.8.0-0"]]
                    :source-paths ["dev/server" "src/server" "src/shared"]
                    :repl-options {:init-ns user

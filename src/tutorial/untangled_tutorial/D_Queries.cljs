@@ -12,7 +12,7 @@
 
 (defcard-doc
   "
-  # Om Queries
+  # Queries
 
   Once you've got some data in a database on the client then the next thing you need to know
   is how to get it back out (and eventually onto the screen). The \"getting it out\" is
