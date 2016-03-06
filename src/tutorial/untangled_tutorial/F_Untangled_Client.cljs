@@ -41,6 +41,20 @@
 
   Wow! That's a lot for two lines of code.
 
+  ## Recommended Application Layout for Development
+
+  A lot of thought has gone into how to lay out your application to be able to:
+
+  - Run it in development mode with figwheel
+  - Compile it to production code with advanced optimizations
+  - Use the REPL support in your IDE/editor
+
+  The primary components of this layout are:
+
+  - An entry point for production that does nothing *but* mount the app
+  - A core namespace that creates the application and loads things like i18n support
+  - A development namespace file that mounts the app in development mode
+  - A project file that is configured for running both the server, client, and tests with hot code reload.
   "
   )
 

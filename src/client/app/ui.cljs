@@ -2,112 +2,30 @@
   (:require [om.dom :as dom]
             [om.next :as om :refer-macros [defui]]
             [untangled.i18n :refer-macros [tr trf]]
-            yahoo.intl-messageformat-with-locales
+            [untangled.client.mutations :as m]
             [untangled.client.data-fetch :as df]))
 
-; Standard Om UI code.
-
-; NOTE: Data fetch helpers load-singleton, load-collection, and load-field allow for easy lazy loading based on UI
-; queries that can be triggered via events. These do transact! underneath, and should work find.
-
-(defui ^:once Comment
+(defui ^:once Item
   static om/IQuery
-  ; ANY property namespaced to :ui/... will NEVER appear in a server query. They are automatically elided in the plubming
-  ; for your convenience. This allows you to use things like :ui/visible to store state in the app state without having
-  ; to use local component state or deal with the server not wanting to see it in queries.
-  ; See also data-fetch mutation helpers like `df/set-string!` (MEANT ONLY for UI attributes)
-  (query [this] [:ui/fetch-state :id :author :text])
+  (query [this] [:ui/checked :id :label])
   static om/Ident
-  (ident [this props] [:comment/by-id (:id props)])
+  (ident [this props] [:item/by-id (:id props)])
   Object
   (render [this]
-    (let [{:keys [id author text]} (om/props this)]
-      (dom/div #js {:className "comment"}
-        (dom/span #js {:className "value"} text)
-        ;; i18n is as simple as wrapping strings in tr or trf and leveraging the i18n lein plugin!
-        (dom/span #js {:className "author"} (trf "By {author}" :author author))))))
+    (let [{:keys [id label ui/checked]} (om/props this)]
+      (dom/div #js {:className "item"}
+               (dom/input #js {:type    "checkbox"
+                               :checked checked
+                               :onClick #(m/toggle! this :ui/checked)}) label))))
 
-(def ui-comment (om/factory Comment {:keyfn :id}))
-
-(defn render-comments [comments] (mapv ui-comment comments))
-
-(defui ^:once DataItem
-  static om/IQuery
-  (query [this] [:ui/fetch-state :db/id :item/text {:item/comments (om/get-query Comment)}])
-  static om/Ident
-  (ident [this props] [:data-item (:db/id props)])
-  Object
-  (render [this]
-    (let [{:keys [item/text item/comments]} (om/props this)]
-      (dom/div nil
-        (dom/span nil text)
-        (dom/div #js {:className "comments"}
-          (when (nil? comments)
-            ; LAZY LOAD the comments. The original load elided comments. load-field derives the query from the UI,
-            ; roots it via the component's ident, and places state markers in the app state (so you can render spinners/loading).
-            ; lazily-loaded (read the source) is an example of how to leverage this.
-            ; IMPORTANT: The component to load MUST include :ui/fetch-state in order for you to see these state markers.
-            (dom/button #js {:className "show-button" :onClick #(df/load-field this :item/comments)} (tr "Show comments")))
-          (df/lazily-loaded render-comments comments))))))
-
-(def ui-data-item (om/factory DataItem {:keyfn :db/id}))
-
-(defui ^:once SettingsTab
-  static om/IQuery
-  (query [this] [:id :tab/type :tab/label])
-  Object
-  (render [this]
-    (dom/div nil
-      (dom/h1 nil "Settings")
-      (dom/p nil "Settings go here..."))))
-
-(def ui-settings-tab (om/factory SettingsTab))
-
-(defn render-data-items [items] (map ui-data-item items))
-
-(defui ^:once MainTab
-  static om/IQuery
-  (query [this] [:id :tab/type :tab/label {:data-items (om/get-query DataItem)}])
-  Object
-  (render [this]
-    (let [{:keys [data-items]} (om/props this)]
-      (dom/div nil
-        (dom/h1 nil (tr "Main: Data Items"))
-        (df/lazily-loaded render-data-items data-items)))))
-
-(def ui-main-tab (om/factory MainTab))
-
-(defui ^:once Tab
-  static om/IQuery
-  (query [this] {:main (om/get-query MainTab) :settings (om/get-query SettingsTab)})
-  static om/Ident
-  (ident [this props] [(:tab/type props) (:id props)])
-  Object
-  (render [this]
-    (let [{:keys [id tab/type] :as props} (om/props this)]
-      (case type
-        :main (ui-main-tab props)
-        :settings (ui-settings-tab props)
-        (dom/div nil "MISSING TAB")))))
-
-(def ui-tab (om/factory Tab))
+(def ui-item (om/factory Item {:keyfn :id}))
 
 (defui ^:once Root
   static om/IQuery
-  (query [this] [:ui/locale :ui/react-key {:current-tab (om/get-query Tab)}])
+  (query [this] [{:item (om/get-query Item)}])
   Object
   (render [this]
-    (let [{:keys [current-tab ui/locale ui/react-key] :or {ui/react-key "ROOT"} :as props} (om/props this)
-          tab (:tab/type current-tab)]
-      (dom/div #js {:key react-key}                         ; needed for forced re-render to work on locale changes and hot reload
-        (dom/div nil
-          (dom/ul #js {:className "tabs"}
-            (dom/li #js {:className (str "tab" (if (= tab :main) " active-tab"))} (dom/a #js {:onClick #(om/transact! this '[(nav/change-tab {:target :main})])} (tr "Main")))
-            (dom/li #js {:className (str "tab" (if (= tab :settings) " active-tab"))} (dom/a #js {:onClick #(om/transact! this '[(nav/change-tab {:target :settings})])} (tr "Settings"))))
-          (ui-tab current-tab))
+    (let [{:keys [item]} (om/props this)]
+      (ui-item item))))
 
-        ;; the build in mutation for setting locale triggers re-renders of translated strings
-        (dom/select #js {:className "locale-selector" :value locale :onChange (fn [evt] (om/transact! this `[(ui/change-locale {:lang ~(.. evt -target -value)})]))}
-          (dom/option #js {:value "en-US"} "English")
-          (dom/option #js {:value "es-MX"} "Español"))
-        ))))
+
