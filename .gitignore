@@ -2,3 +2,5 @@
 resources/public/js
 *.iml
 checkouts
+figwheel_server.log
+target
