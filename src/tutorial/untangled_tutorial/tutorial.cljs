@@ -15,7 +15,7 @@
     untangled-tutorial.Z-Glossary
     [devtools.core :as devtools]))
 
-(do
-  (devtools/enable-feature! :sanity-hints)
-  (devtools/install!))
-
+(defonce devtools-installed
+         (do (devtools/enable-feature! :sanity-hints)
+             (devtools/install!)
+             true))

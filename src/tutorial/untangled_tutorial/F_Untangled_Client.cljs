@@ -66,8 +66,11 @@
   force a refresh that whenever code reloads so we can see our changes.
   In order to do this:
 
-  - Untangled forces a full UI refresh is mount is called on an already mounted app. If you specify that the
-  development namespace (which always mounts the app) is reloaded every time, then that is sufficient.
+  - Untangled forces a full UI refresh if `mount` is called on an already mounted app. If you specify that the
+  development namespace (which always mounts the app) is reloaded every time, then that is sufficient. If
+  you have figwheel `:recompile-dependents true` in the project file (which we set by default) this typically
+  ensures that the user development namespace is always reloaded. Since `mount` is called there, this is usually
+  sufficient.
   - The application itself has a (protocol) method named `refresh`. You can configure
   figwheel to invoke a function that calls thta after each load.
 
@@ -116,6 +119,38 @@
   REPL will give an error). Instead, you can supply it with a keyword and it will look that up in the
   app state and show just that bit instead.
 
+  ```
+  cljs.user=> (log-app-state :item)
+  {:item [:item/by-id 1]}
+  ```
+
+  ### Chrome dev tools
+
+  ClojureScript has some Chrome dev tools that we highly recommend (and install in the project file by
+  default):
+
+  ```
+  [binaryage/devtools \"0.5.2\"]
+  ```
+
+  These tools require that you run this code as soon as possible:
+
+  ```
+  (defonce devtools-installed
+    (do (devtools/enable-feature! :sanity-hints)
+        (devtools/install!)
+        true))
+  ```
+
+  AND you must enable custom formatters in Chrome dev tools: Dev tools -> Settings -> Console -> Enable Custom Formatters
+
+  Once you've installed these you'll get features like:
+
+  - Use `(js/console.log v)` and `v` will display as Clojurescript data
+  - See cljs variables and other runtime information in the source debugger as Clojurescript data
+
+  These tools are critical when trying to debug your application, as you can actually clearly see
+  what is going on!
 
   "
   )
