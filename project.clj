@@ -2,12 +2,13 @@
   :description "A Tutorial for the Untangled Web Framework"
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.228"]
-                 [org.omcljs/om "1.0.0-alpha31-SNAPSHOT"]
+                 [org.omcljs/om "1.0.0-alpha31"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
                  [commons-codec "1.10"]
                  [navis/untangled-client "0.4.5-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.5"]
+                 [navis/untangled-spec "0.3.5"]
                  [navis/untangled-datomic "0.4.4"]]
 
   ; server source paths

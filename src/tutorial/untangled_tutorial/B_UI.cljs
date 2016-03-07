@@ -121,8 +121,8 @@
   (render [this]
     (let [{:keys [people number]} (om/props this)]
       (dom/div nil
-               (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
-               (people-list people)))))
+        (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
+        (people-list people)))))
 
 (def root (om/factory Root))
 
@@ -175,12 +175,12 @@
     (let [{:keys [people number b]} (om/props this)
           {:keys [incHandler boolHandler]} (om/get-computed this)]
       (dom/div nil
-               ; code pprinter cannot deal with #js on rendering source. Using clj->js instead
-               (dom/button (clj->js {:onClick #(boolHandler)}) "Toggle Luck")
-               (dom/button (clj->js {:onClick #(incHandler)}) "Increment Number")
-               (dom/span nil (str "My " (if b "" "un") "lucky number is " number
-                                  " and I have the following friends:"))
-               (people-list people)))))
+        ; code pprinter cannot deal with #js on rendering source. Using clj->js instead
+        (dom/button (clj->js {:onClick #(boolHandler)}) "Toggle Luck")
+        (dom/button (clj->js {:onClick #(incHandler)}) "Increment Number")
+        (dom/span nil (str "My " (if b "" "un") "lucky number is " number
+                        " and I have the following friends:"))
+        (people-list people)))))
 
 (def root-computed (om/factory Root-computed))
 
@@ -219,48 +219,45 @@
   ")
 
 (defcard passing-callbacks-via-computed
-         (fn [data-atom-from-devcards _]
-           (let [prop-data @data-atom-from-devcards
-                 sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
-                                :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
-                 ]
-             (root-computed (om/computed prop-data sideband-data))))
-         {:number 42 :people [{:name "Sally"}] :b false}
-         {:inspect-data true
-          :history      true})
+  (fn [data-atom-from-devcards _]
+    (let [prop-data @data-atom-from-devcards
+          sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
+                         :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
+          ]
+      (root-computed (om/computed prop-data sideband-data))))
+  {:number 42 :people [{:name "Sally"}] :b false}
+  {:inspect-data true
+   :history      true})
 
 (defn render-squares [component props]
   (let [svg (-> js/d3 (.select (dom/node component)))
         data (clj->js (:squares props))
         selection (-> svg
-                      (.selectAll "rect")
-                      (.data data (fn [d] (.-id d))))]
+                    (.selectAll "rect")
+                    (.data data (fn [d] (.-id d))))]
     (-> selection
-        .enter
-        (.append "rect")
-        (.style "fill" (fn [d] (.-color d)))
-        (.attr "x" "0")
-        (.attr "y" "0")
-        .transition
-        (.attr "x" (fn [d] (.-x d)))
-        (.attr "y" (fn [d] (.-y d)))
-        (.attr "width" (fn [d] (.-size d)))
-        (.attr "height" (fn [d] (.-size d))))
+      .enter
+      (.append "rect")
+      (.style "fill" (fn [d] (.-color d)))
+      (.attr "x" "0")
+      (.attr "y" "0")
+      .transition
+      (.attr "x" (fn [d] (.-x d)))
+      (.attr "y" (fn [d] (.-y d)))
+      (.attr "width" (fn [d] (.-size d)))
+      (.attr "height" (fn [d] (.-size d))))
     (-> selection
-        .exit
-        .transition
-        (.style "opacity" "0")
-        .remove)
+      .exit
+      .transition
+      (.style "opacity" "0")
+      .remove)
     false))
 
 (defui D3Thing
   Object
-  (componentDidMount [this]
-    (render-squares this (om/props this)))
-  (shouldComponentUpdate [this next-props next-state]
-    (let [props (om/-next-props next-props this)]
-      (render-squares this props)
-      false))
+  (componentDidMount [this] (render-squares this (om/props this)))
+  (shouldComponentUpdate [this next-props next-state] false)
+  (componentWillReceiveProps [this props] (render-squares this props))
   (render [this]
     (dom/svg (clj->js {:style   {:backgroundColor "rgb(240,240,240)"}
                        :width   200 :height 200
@@ -324,27 +321,25 @@
 (defn add-square [state] (swap! state update :squares conj (random-square)))
 
 (defcard sample-d3-component
-         (fn [state-atom _]
-           (dom/div nil
-                    (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
-                    (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
-                    (dom/br nil)
-                    (dom/br nil)
-                    (d3-thing @state-atom)))
-         {:squares []}
-         {:inspect-data true})
+  (fn [state-atom _]
+    (dom/div nil
+      (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
+      (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
+      (dom/br nil)
+      (dom/br nil)
+      (d3-thing @state-atom)))
+  {:squares []}
+  {:inspect-data true})
 
 (defcard-doc
   "
 
   The things to note for this stateful example are:
 
-  - We override the React lifecycle method `shouldComponentUpdate` to do the actual D3 update, and then return false.
-  This ensures React and D3 don't fight over the DOM for the component (since we're asking React to never change
-  it).
-  - We also override `componentDidMount` to do an initial render in D3.
-  - Note: As of Om 1.0.0 Alpha 30 the method of obtaining the properties differs a bit, as shown. This may have
-  changed since this writing. If the example is failing please check the docs and report a bug.
+  - We override the React lifecycle method `shouldComponentUpdate` to return false, so that React doesn't try to mess with
+  the DOM created by D3.
+  - We override `componentWillReceiveProps` and `componentDidMount` do the actual D3 render/update. Our render method
+  is idempotent, and figures out the actions to take via D3 mechanisms.
 
   ## Important Notes and Further Reading
 
