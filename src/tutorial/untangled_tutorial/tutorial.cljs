@@ -11,7 +11,6 @@
     untangled-tutorial.F-Untangled-Client
     untangled-tutorial.G-Mutation
     untangled-tutorial.G-Mutation-Exercises
-    untangled-tutorial.J-Advanced-Queries
     untangled-tutorial.Z-Glossary
     [devtools.core :as devtools]))
 

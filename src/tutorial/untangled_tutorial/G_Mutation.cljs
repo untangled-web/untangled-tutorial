@@ -162,5 +162,28 @@
   components are used to transform the keywords requested into queries to run against the local app state. Those
   queries are run, the results are focused to the target components, and those components are re-rendered. Of course,
   if the state hasn't changed, then React will optimize away any actual DOM change.
+
+  ## Untangled Built-in Mutations
+
+  ### UI Attributes
+
+  There is a special use-case in your applications for attributes in a component query: local, UI-only data. For
+  example, is a checkbox checked. Om generally hooks this stuff up to component-local state, but that makes
+  debugging more difficult, and it also makes some user interactions invisible to the support VCR viewer. Instead,
+  if you namespace these UI-only attrubutes to `ui`, they will be elided from server queries (see Server Interactions).
+
+  Since UI attributes really don't need very abstract mutations (typical operations are 'set to this string' and 'toggle')
+  Untangled includes these mutations, along with convenience functions for easy IDE use.
+
+  The functions of interest are in `untangled.client.mutations` (`ucm` below):
+
+  - `(ucm/toggle! this :ui/visible)` - Change the :ui/visible property on this component in the app state by toggling it between true/false.
+  - `(ucm/set-string! this :ui/value :value \"hello\")` - Change :ui/value on this component to a literal value
+  - `(ucm/set-string! this :ui/value :event evt)` - Same, but extract evt.target.value from the provided js input event and use that.
+  - `(ucm/set-integer! this :ui/value :value \"33\")` - Change :ui/value on this component, but first coerce it to an integer
+  - `(ucm/set-integer! this :ui/value :event evt)` - Same, but extract evt.target.value from the provided js input event and use that.
+
+  IMPORTANT NOTE: This component (`this`) *MUST* have an ident (which is how the mutations find it in the app state).
+
   ")
 
