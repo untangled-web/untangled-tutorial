@@ -99,33 +99,35 @@
   ## Differences from stock Om (next)
 
   For those that are used to Om, you may be interested in the differences and rationale behind the way Untangled
-  handles server interactions.
+  handles server interactions, particularly remote reads.
 
   In Om, you have a fully customizable experience for reads/writes; however, to get this power you must write
   a parser to process the queries and mutations, including analyzing application state to figure out when to talk
   to a remote. While this is fully general and quite flexible (Untangled is implemented on top of it, after all),
   there is a lot of head scratching to get the result you want.
 
-  Initial loads and user-driven loads are the most common task in interacting with a server. In both of these cases
-  you probably want:
+  Our realization when building Untangled was that remote reads happen in two basic cases: initial load (based on
+  initial application state) and event-driven load (e.g. routing, \"load comments\", etc). Then we had a few more
+  facts that we threw into the mix:
 
-  - To know that it is happening in the UI
-      - To know/show (in the UI) when the load is in progress on the network
-      - To know/show (in the UI) when the load is complete
-      - The ability to show a loading marker in the UI globally
-      - The ability to show a loading marker in the UI at the *target* location for the incoming data
-  - To have clear reasoning about when you load something that doesn't involve thinking about a parser
-  - The ability to create derived data after the load
+  - We very often wanted to morph the UI query in some way before sending it to the server (e.g. process-roots or
+  asking for a collection, but then wanting to query it in the UI \"grouped by category\").
+      - This need to modify the query (or write server code that could handle various different configurations of the UI)
+        led us to the realization that we really wanted a table in our app database on canonical data, and \"views\" of
+        that data (e.g. a sorted page of it, items grouped by category, etc.) While you can do this with the parser, it
+        is crazy complicated compared to the simple idea: Any time you load data into a given table, allow the user to
+        regenerate derived views in the app state, so that the UI queries just naturally work without parsing logic for
+        *each* re-render. The con, of course, is that you have to keep the derived \"views\" up to date, but this is
+        much easier to reason about (and codify into a central update function) in practice than a parser.
+  - We always needed a marker in the app state so that our remote parsing code could *decide* to return a remote query.
+      - The marker essentially needed to be a state machine kind of state marker (ready to load, loading in progress,
+        loading failed, data present). This was a complication that would be repeated over and over.
+  - We often wanted a *global* marker to indicate when network activity was going on
 
-  The UI portions are accomplished, of course, by putting something in the app state that the UI is querying for, and
-  rendering it. The reasoning portion requires that you keep track of what you have, and what you want to do. The
-  ability to create derived data and manage the 'state machine' of the process of loading (and failures)
-  is a bit more difficult.
-
-  By eliminating the need for an Om parser to process all of this, and centralizing the logic to a core set of functions
+  By eliminating the need for an Om parser to process all of this and centralizing the logic to a core set of functions
   that handle all of these concerns you gain a lot of simplicity.
 
-  The use-cases we're addressing are:
+  So, let's look how we handle the explicit use-cases:
 
   ### Use Case - Initial Load
 
@@ -140,6 +142,29 @@
   State markers are put in place that allow you to then render the fact that you are loading data. Any number of separate
   server queries can be queued, and the queries themselves are used for normalization. Post-processing of the response
   is well-defined and trivial to access.
+
+  ```
+  (uc/new-untangled-client
+    :initial-state {}
+    :started-callback
+      (fn [app]
+        (df/load-collection :query [{:items (om/get-query CollectionComponent)}]
+                                     :without #{:comments}
+                                     :post-mutation 'app/build-views)))
+  ```
+
+  In the above example the client is created (which must be mounted as a separate step). Once mounted the application
+  will call the `:started-callback` which in turn will trigger a load. This helper function is really a call to
+  om `transact!` that places `ready-to-load` markers in the app state, which in turn triggers the network plumbing. The
+  network plumbing pulls these and processes them via the server and all of the normalization bits of Om (and Untangled).
+
+  The `:without` parameter will elide portions of the query. So for example, if you'd like to lazy load some portion of the
+  collection (e.g. comments on each item) at a later time, you can prevent the server from being asked.
+
+  The `:post-mutation` parameter is the name of the mutation you'd like to run on a successful result of the query. If there
+  is a failure, then a failure marker will be placed in the app state, which you can have programmed your UI to react to
+  (e.g. showing a dialog that has user-driven recovery choices).
+
 
   ### Use Case - Lazy Loading
 
