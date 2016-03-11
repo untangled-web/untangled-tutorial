@@ -92,7 +92,24 @@
 
   ### Server Writes
 
-  TODO: Just like Om
+  TODO: Just like Om (:remote true); however adds in error handling triggering via tx fallbacks:
+
+  ```
+  (om/transact! this '[(app/f) (tx/fallback {:action mutation-symbol :param 1})])
+  ```
+
+  assuming the `app/f` mutation returns remote true, this sends `app/f` to the server. If the server throws an error
+  (via ex-info) then the fallback action's mutation symbol (a dispatch key for mutate) is invoked on the client with
+  params that include the client fallback params (`:param 1` in the example) and an `:error` key that includes the
+  details of the server exception (error type, message, and ex-info's data). Be sure to only throw serializable data
+  in the server!
+
+  You can have any number of fallbacks in a tx, and they will run in order if the transaction fails.
+
+  TODO: Clearing the remaining send queue, etc. The API does not support (but needs to) optional clearing of
+  the remainder of the send queue on the client as part of fallback handling. This might be necessary, say, in the case
+  where the tx that failed indicates the app state is invalid...additional network interactions are probably all going to
+  fail. What you want to do is trigger some kind of state reload to restore sanity.
 
   #### Updating an existing item
 
@@ -298,6 +315,6 @@
 
   ### Global Network activity marker
 
-  TODO: Document how to use the network activity marker to show a general purpose loading marker in the UI. Probably needs
-  a little implementation work still (though the marker exists, and is tested).
+  TODO: Document how to use the network activity marker to show a general purpose loading marker in the UI. Basically query
+  to the top-level (via an Om query link).
 ")
