@@ -40,13 +40,47 @@
 
   ### Data Merge
 
-  #### Ensuring queries from more that one part of the UI behave well
+  Untangled overrides the built-in Om merge. Untangled's data merge has a number of extension that are useful for
+  simple application reasoning:
 
-  #### Normalization
+  1. Merge is a deep merge, but with extra logic
 
+  Untangled merges your response via deep merge, meaning that existing data is not wiped out by default. Unfortunately,
+  this causes a different problem. Let's say you have two UI components that ask for similar information:
+
+  Component A asks for [:a]
+  Component A2 asks for [:a :b]
+
+  Of course, these queries are composed into a larger query, but you can imagine that if we use the query of A2, normalization
+  will put something like this somewhere in the app state: `{ :a 1 :b 2}`. Now, at a later time, say we re-run a load but
+  use component A's query. The response from the server will say something like `{:a 5}`, because all we asked for was
+  `:a`!  But what if both A and A2 are on the screen??? Well, depending on how you merge strange things can happen.
+
+  So, Untangled forms an opinion on this scenario:
+
+  - First, since it isn't a great thing to do, you should avoid it
+  - However, if you do it, Untangled merges with the following rules:
+      - If the query *asks* for an attribute, and the *response does not include it*, then it is always removed from the app state since the
+      server has clearly indicated it is gone.
+      - The the query *does not ask* for an attribute (which means the response cannot possibly contain it), then Untangled
+      will avoid removing it, even if other attributes come back (e.g. it will be a merge leaving the property that was
+      not asked for alone). This does indicate that your UI is possibly in a state inconsistent with the server, which
+      is the reason for the \"avoid this case\" advice.
+
+  ### Normalization
+
+  Normalization is always *on* in Untangled. You are forced to use the default database format. If you've passed an
+  atom as initial state then initial state is assumed to be pre-normalized, but normalization will always be on. Loads
+  must use real composed queries from the UI for normalization to work (the om `get-query` function adds info to assit
+  with normalization).
+
+  Therefore, you almost *never* want to use a hand-written query that has not been placed on a `defui`. It is perfectly
+  acceptable to define queries via defui to ensure normalization will work, and this will commonly be the case if your
+  UI needs to ask for data in a structure different from what you want to run against the server.
 
   ### Query Narrowing
 
+  The load functions allow you to elide parts of the query using `:without set`
 
 
   ## Mutations
