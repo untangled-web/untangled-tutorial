@@ -80,21 +80,32 @@
 
   ### Query Narrowing
 
-  The load functions allow you to elide parts of the query using `:without set`
-
+  The load functions allow you to elide parts of the query using `:without set`. This is useful when you have a query
+  that would load way more than you need right now. Using the `:without` parameter on a `load` function will cause it
+  to elide the portions of the query (properties/joins) that use the given keywords. See the loading sections below.
 
   ## Mutations
 
   ### Optimistic (client) changes
 
+  TODO: Just like Om
+
   ### Server Writes
+
+  TODO: Just like Om
 
   #### Updating an existing item
 
+  TODO: Just like Om
+
   #### New Item Creation – Temporary IDs
+
+  TODO: Similar to Om, but `{ :tempids tempidmap }` can be returned from `:action` of server mutation and it will
+  just work. The plumbing is pre-written.
 
   #### Reading results after a mutation
 
+  See notes on built-in call (app/load)
 
   ## Differences from stock Om (next)
 
@@ -210,6 +221,49 @@
   'load in progress' marker of your choice.
 
   Untangled has supplied all of the Om plumbing for you.
+
+  #### How Reads Work : `app/load`
+
+  The helper functions described above simply trigger a built-in Untangled mutation called `app/load`, which you are
+  allowed (and sometimes encouraged) to use directly. It is the Untangled method of doing follow-on reads after a remote
+  mutation:
+
+  ```
+  (om/transact! this '[(app/do-some-thing) (app/load {:query [:a]})])
+  ```
+
+  The normal form of follow-on keywords (for re-rendering the UI) works fine, it will just never trigger remote
+  reads.
+
+  The `app/load` mutation does a very simple thing: It puts a state marker in a well-known location in your app state
+  to indicate that you're wanting to load something (and returns `:remote true`). This causes the network
+  plumbing to be triggered. The network plumbing only receives mutations that are marked remote, so it does the following:
+
+  - It looks for the special mutations `app/load` and `tx/fallback`. The latter is part of the unhappy path handling.
+     - For each load, it places a state marker in the app state at the target destination for the query data
+     - All loads that are present are combined together into a single Om query
+  - It looks for other mutations
+  - It puts the 'other mutations' on the send queue
+  - It puts the derived query from the `app/loads` onto the send queue
+
+  A separate \"thread\" (core async go block) watches the send queue, and sends things one-at-a-time (e.g. each entry
+  in the queue is processed in a sequence, ensuring you can reason about things sequentially). The one-at-a-time
+  semantics are very important for handling tempid reassignment, rational optimistic updates, and unhappy path handling.
+
+  The send processing block (uses core async to make a thread-like infinite loop):
+
+  - Pulls an item from the queue (or \"blocks\" when empty)
+  - Sends it over the network
+  - Updates the marker in the app state to `loading` (which causes a re-render, so you can render loading UI)
+  - \"waits\" for the response
+      - On success: merges the data
+      - On error: updates the state marker to an error state (which re-renders allowing the UI to show error UI)
+  - Repeats in an infinite loop
+
+  #### Using `app/load` directly
+
+  TODO: See the helper functions `load-collection` and `load-field`. We might add more specific versions of `app/load`
+  that provide a clearer end-user API.
 
   ### Remote Reads after a Mutation
 
