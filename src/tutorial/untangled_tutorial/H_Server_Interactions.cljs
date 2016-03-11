@@ -291,6 +291,13 @@
 
   Of course, you can (and *should) use syntax quoting to embed a query from (om/get-query) so that normalization works,
   and the post-mutation can be used to deal with the fact that other parts of the UI may want to, for example, point
-  to this newly-loaded thing.
+  to this newly-loaded thing. The `after-load-sym` is a symbol (e.g. dispatch key to the mutate multimethod). The multi-method
+  is guaranteed to be called with the app state in the environment, but no other Om environment items are ensured at
+  the moment.
 
+
+  ### Global Network activity marker
+
+  TODO: Document how to use the network activity marker to show a general purpose loading marker in the UI. Probably needs
+  a little implementation work still (though the marker exists, and is tested).
 ")
