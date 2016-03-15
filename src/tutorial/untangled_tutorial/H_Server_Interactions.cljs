@@ -8,12 +8,14 @@
   "
   # Server Interaction
 
-  The semantics of request processing in Untangled have a number of guarantees
+  The semantics of server request processing in Untangled have a number of guarantees
   that Om does not (out of the box) provide:
 
-  - Each specific call to a read or mutation function will run, in order and to completion, before invoking the next request.
-  This allows you to reason about optimistic updates. Starting more than one at a time via async calls could lead to out-of-order
-  execution, and impossible to reason about recovery from errors.
+  - Networking is provided
+  - All network requests (queries and mutations) are single-threaded. This allows you
+  to reason about optimistic updates (Starting more than one at a time via async calls could
+  lead to out-of-order execution, and impossible to reason about recovery from errors).
+  - You may provide fallbacks that indicate error-handling mutations to run on failures
 
   ## Reads
 

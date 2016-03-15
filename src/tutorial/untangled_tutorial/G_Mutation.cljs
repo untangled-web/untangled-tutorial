@@ -29,7 +29,7 @@
   `untangled.client.mutations/mutate` multimethod.
 
   Your mutate function must be side-effect free so instead of doing the actual action, it must
-  return a map that can contain:
+  return a map that contain instructions about what to do:
 
   ```
   (ns my-mutations
@@ -37,13 +37,16 @@
 
   (defmethod m/mutate 'app/delete [{:keys [state ast] :as env} k params]
      {
-       ; A thunk to do the local db modifications
+       ; A thunk to do the local db modifications/optimistic update
        :action (fn []
                  (swap! state ...))
 
        ; if you want this mutation to also be sent to the server
        :remote true })
   ```
+
+  It is also possible to change the form of the mutation that is sent to the server (the code above causes
+  the identical mutation to be sent to the server that was initiated by the client code).
 
   ## Updating an item stored in a map
 
@@ -70,12 +73,16 @@
   ```
 
   Given that the rest of your database will refer to the table item, there is nothing else to do as far as the
-  mutation goes. To indicate that a transaction affects components that use that object (by ident) just tack
-  the ident into the mutation call:
+  mutation goes. To indicate that a transaction affects other components you can tack property names onto
+  the transaction to indicate that any component that queries for the given property will be re-rendered
+  after the update:
 
   ```
-  (om/transact! this `[(app/set-name { :person 1 :name ~n }) [:people/by-id 1]])
+  (om/transact! this `[(app/set-name { :person 1 :name ~n }) :person])
   ```
+
+  You should understand that all components that include that property name in their query will be
+  re-rendered. More details can be found below.
 
   ## Adding an item to a list
 
