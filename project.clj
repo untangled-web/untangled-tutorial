@@ -5,7 +5,7 @@
                  [org.omcljs/om "1.0.0-alpha31"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
                  [commons-codec "1.10"]
-                 [navis/untangled-client "0.4.5-SNAPSHOT"]
+                 [navis/untangled-client "0.4.7-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.5"]
                  [navis/untangled-spec "0.3.5"]
@@ -42,7 +42,7 @@
   :cljsbuild {:builds
               [{:id           "client"
                 :figwheel     true
-                :source-paths ["dev/client" "src/client" "src/shared" "checkouts/untangled-client/src"]
+                :source-paths ["dev/client" "src/client" "src/shared"]
                 :compiler     {:main                 cljs.user
                                :asset-path           "js/main"
                                :output-to            "resources/public/js/main.js"
@@ -51,7 +51,7 @@
                                :verbose              false}}
                {:id           "test"
                 :figwheel     true
-                :source-paths ["src/client" "src/shared" "test/client" "test/shared" "checkouts/untangled-client/src"]
+                :source-paths ["src/client" "src/shared" "test/client" "test/shared"]
                 :compiler     {:main                 app.suite
                                :asset-path           "js/specs"
                                :output-to            "resources/public/js/specs.js"
@@ -60,7 +60,7 @@
                                }}
                {:id           "tutorial"
                 :figwheel     {:devcards true}
-                :source-paths ["src/tutorial" "src/shared" "checkouts/untangled-client/src"]
+                :source-paths ["src/tutorial" "src/shared"]
                 :compiler     {
                                :main                 untangled-tutorial.tutorial
                                :source-map-timestamp true
