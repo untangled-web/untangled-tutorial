@@ -5,6 +5,7 @@
                  [org.omcljs/om "1.0.0-alpha31"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
                  [commons-codec "1.10"]
+                 [lein-doo "0.1.6" :scope "test"]
                  [navis/untangled-client "0.4.7-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.5"]
@@ -27,6 +28,9 @@
             [navis/untangled-lein-i18n "0.1.2" :exclusions [org.apache.maven.wagon/wagon-provider-api org.codehaus.plexus/plexus-utils org.clojure/tools.cli]]]
 
   :clean-targets ^{:protect false} ["resources/public/js" "target"]
+
+  :doo {:build "automated-tests"
+        :paths {:karma "node_modules/karma/bin/karma"}}
 
   ; Configure test-refresh to show custom spec outline
   :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report
@@ -57,6 +61,14 @@
                                :output-to            "resources/public/js/specs.js"
                                :output-dir           "resources/public/js/specs"
                                :recompile-dependents true
+                               }}
+{:id           "automated-tests"
+                :source-paths ["test/client" "test/shared" "src/client" "src/shared"]
+                :compiler     {:output-to     "resources/private/js/unit-tests.js"
+                               :main          app.all-tests
+                               :asset-path    "js"
+                               :output-dir    "resources/private/js"
+                               :optimizations :none
                                }}
                {:id           "tutorial"
                 :figwheel     {:devcards true}
