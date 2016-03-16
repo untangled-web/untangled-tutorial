@@ -1,6 +1,6 @@
 # Untangled Tutorial 
 
-NOTE: This tutorial requires Om alpha31+ which is not yet released. 
+NOTE: This tutorial requires Om alpha31+ which is not yet released. Until then you can use [Om as a checkout dependency](https://github.com/technomancy/leiningen/blob/792750b7a1bdf0499081c72b197df41cee5ef648/doc/TUTORIAL.md#checkout-dependencies).
 
 This is an interactive tutorial for developing applications with 
 the Untangled web framework.
