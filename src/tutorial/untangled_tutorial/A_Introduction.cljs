@@ -11,6 +11,10 @@
 
   Note that you can navigate to the table of contents any time using the `devcards` link at the top of the page.
 
+  **WORK IN PROGRESS**: We are working hard to round out documentation, code samples, and many
+  other things while also developing production software. Please be patient with us and feel
+  free to suggest (or make) contributions.
+
   ## About This Tutorial
 
   This tutorial is written in Bruce Hauman's excellent Devcards. As such, these documents are live code!
