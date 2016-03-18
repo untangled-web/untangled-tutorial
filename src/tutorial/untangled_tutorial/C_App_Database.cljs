@@ -130,8 +130,8 @@
   and starts to look like a controller from MVC. It also means that if you write a different
   (e.g. mobile) UI, you won't easily re-use that bit of code.
 
-  Om has great support for true singletons in the database (and queries, as we'll see). So if you
-  have this kind of data just store it under a (namespaced) keyword at the top level:
+  Om has great support for true singletons in the database (and queries, see [Using Links](#!/untangled_tutorial.D_Queries)).
+  So if you have this kind of data just store it under a (namespaced) keyword at the top level:
 
   ```
   { :current/user {:user/name ...} }

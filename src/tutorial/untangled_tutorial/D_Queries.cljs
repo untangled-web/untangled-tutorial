@@ -234,6 +234,39 @@
    :id           "ident-based-queries"}
   {:inspect-data false})
 
+(defcard-doc
+  "### Using Links
+
+  Links look like idents, but they replace the ID portion with the special symbol `_`. Note
+  that symbols need to be quoted, so a query including a link will need to leverage
+  quoting in normal syntax. In the section on the database format we talked about top-level
+  singletons. Links are the way to access them anywhere from the UI because they can appear
+  at any level in the nested query.
+
+
+  ")
+
+(defcard query-example-links
+  "In the example database below we emulate the idea that the UI might have a main
+   screen. The UI query might then end up being nested several layers deep.
+   A link query can be used to grab top-level data even if that portion of
+   the query is nested:
+
+   So, an interesting query could be:
+
+   - [{:main-menu [:title {[:chart _] [:name]}]}]
+   "
+  qe/query-editor
+  {:query        "[{:main-menu [:title {[:chart _] [:name]}]}]"
+   :query-result {}
+   :db           {:main-menu { :title "My Title" }
+                  :chart      {:name "Combined Graph" :data [:statistics :performance]}
+                  :statistics {:performance {
+                                             :cpu-usage        [45 15 32 11 66 44]
+                                             }}}
+   :id           "query-example-links"}
+  {:inspect-data false})
+
 
 (defcard-doc
   "
