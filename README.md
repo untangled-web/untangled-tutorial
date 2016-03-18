@@ -1,6 +1,6 @@
 # Untangled Tutorial 
 
-NOTE: This tutorial requires Om alpha31+ which is not yet released. 
+NOTE: This tutorial is in progress. It is not complete.
 
 This is an interactive tutorial for developing applications with 
 the Untangled web framework.
@@ -11,7 +11,7 @@ exercises require you to extend and edit the code.
 There are two primary branches in this repository:
 
 - `main`: The branch to use to complete the tutorial
-- `solution`: A branch with all of the exercises completed
+- `solution`: A branch with all of the exercises completed (NOT WRITTEN)
 
 ## What's inside?
 
@@ -89,6 +89,8 @@ Om library (on which much of the system is based):
 The following builds are configured in figwheel:
 
 - `tutorial`: Devcards tutorial for the content listed above
+
+UNFINISHED:
 - `client`: A full-stack application (that you extend as part of the tutorial)
 - `test`: Tests for the client application (for you to see/extend)
 
@@ -146,9 +148,14 @@ after which you probably want to reload the page in your browser to clear out an
 Sometimes (rarely) it is necessary to just stop it all, clean everything with `lein clean` and
 restart.
 
+# PLEASE IGNORE THE FOLLOWING. IT IS UNFINISHED.
+
 ## Server
 
-Running the server is pretty simple. It is set up to run just fine from nREPL or clojure main.
+Running the server is pretty simple. It is set up to run just fine from nREPL or clojure main. 
+
+You *must* first copy a default configuration file from resources/config/defaults.edn to
+/usr/local/etc/app.edn.
 
 ### IntelliJ
 
