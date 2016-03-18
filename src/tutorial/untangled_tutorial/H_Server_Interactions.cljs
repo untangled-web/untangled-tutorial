@@ -14,7 +14,7 @@
   - Networking is provided
   - All network requests (queries and mutations) are single-threaded. This allows you
   to reason about optimistic updates (Starting more than one at a time via async calls could
-  lead to out-of-order execution, and impossible to reason about recovery from errors).
+  lead to out-of-order execution, and impossible-to-reason-about recovery from errors).
   - You may provide fallbacks that indicate error-handling mutations to run on failures
 
   ## Reads
@@ -42,7 +42,8 @@
 
   ### Data Merge
 
-  Untangled overrides the built-in Om merge. Untangled's data merge has a number of extension that are useful for
+  When the server responds Untangled will merge them into the application client database. It overrides the built-in Om
+  shallow merge. Untangled's data merge has a number of extension that are useful for
   simple application reasoning:
 
   1. Merge is a deep merge, but with extra logic
@@ -100,11 +101,12 @@
   (om/transact! this '[(app/f) (tx/fallback {:action mutation-symbol :param 1})])
   ```
 
-  assuming the `app/f` mutation returns remote true, this sends `app/f` to the server. If the server throws an error
+  assuming the `app/f` mutation returns `{:remote true}` (or `{:remote AST}`)  this sends `app/f` to the server.
+  If the server throws an error
   (via ex-info) then the fallback action's mutation symbol (a dispatch key for mutate) is invoked on the client with
   params that include the client fallback params (`:param 1` in the example) and an `:error` key that includes the
-  details of the server exception (error type, message, and ex-info's data). Be sure to only throw serializable data
-  in the server!
+  details of the server exception (error type, message, and ex-info's data). Be sure to only include serializable data
+  in the server exception!
 
   You can have any number of fallbacks in a tx, and they will run in order if the transaction fails.
 

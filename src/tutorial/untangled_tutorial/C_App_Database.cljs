@@ -143,8 +143,8 @@
 
   ## Bleh, manual graph building...Do I have to build that by hand???
 
-  No. You do not need to build normalized graph databases. Om can do that for you. You simply
-  create the tree that the UI wants to see, and then hand it to Om and it will use
+  No. You do not need to build normalized graph databases. Untangled can do that for you. You simply
+  create the tree that the UI wants to see, and then hand it to Untangled and it will use
   the UI query to reformat that data into the internal database format. We'll see more
   on that after we talk about queries.
 
