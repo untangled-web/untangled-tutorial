@@ -29,9 +29,9 @@
   Could be included in textarea->cm"
   [s]
   (-> s
-      r/read-string
-      pprint
-      with-out-str))
+    r/read-string
+    pprint
+    with-out-str))
 
 
 (defn textarea->cm
@@ -54,19 +54,20 @@
     (let [{:keys [id db query-result]} (om/props this)
           local (om/get-state this)
           state (om/get-computed this :atom)]
-      (js/console.log "RENDER")
       (dom/div nil
-               (dom/h4 nil "Database")
-               (html-edn db)
-               (dom/hr nil)
-               (dom/h4 nil "Query Editor")
-               (dom/textarea #js {:id id})
-               (dom/button #js {:onClick #(let [query (.getValue (:cm local))]
-                                           (swap! state assoc :query-result (run-query db query)
-                                                  :query query))} "Run Query")
-               (dom/hr nil)
-               (dom/h4 nil "Query Result")
-               (html-edn query-result)))))
+        (dom/h4 nil "Database")
+        (html-edn db)
+        (dom/hr nil)
+        (dom/div #js {:key (str "editor-" id)}
+          (dom/h4 nil "Query Editor")
+          (dom/textarea #js {:id id})
+          (dom/button #js {:onClick #(let [query (.getValue (:cm local))]
+                                      (swap! state assoc :query-result (run-query db query)
+                                        :query query))} "Run Query"))
+        (dom/hr nil)
+        (dom/div #js {:key (str "result-" id)}
+          (dom/h4 nil "Query Result")
+          (html-edn query-result))))))
 
 (def ui-query-editor (om/factory QueryEditor))
 

@@ -6,3 +6,4 @@ figwheel_server.log
 target
 node_modules
 resources/private
+.nrepl-port
