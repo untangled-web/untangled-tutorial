@@ -35,7 +35,7 @@
       - Support for refreshing the entire UI on hot code reload (with your help)
   - It mounts the application UI on the given DOM element (you can pass a real node or string ID)
 
-  Some additional things that are availabe (which we'll cover soon):
+  Some additional things that are available (which we'll cover soon):
 
   - The ability to load data on start using any queries you've placed on the UI or written elsewhere
   - The ability to do deferred lazy-load on component fields (e.g. comments on an item)
