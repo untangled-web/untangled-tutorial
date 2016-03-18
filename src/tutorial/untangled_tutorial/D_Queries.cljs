@@ -51,7 +51,7 @@
   we need.
 
   If you have not done much in the way of macro programming you may be confused by the
-  quoting often seen in these queries. I'd recommend doing a tutorial on macros, but
+  quoting often seen in these queries. There is an [appendix](/#!/untangled_tutorial.Z_Query_Quoting) on this, but
   here are some quick notes:
 
   - Using `'` quotes the form that follows it, making it literal.
@@ -314,6 +314,8 @@
 
 (defcard-doc
   "
+  ## Final Notes
+
   In case you're interested:
   In this section we're using the Om function `db->tree` to run the queries. This utility can
   (obviously) understand the basic bits of query syntax and retrieve data. It is insufficient

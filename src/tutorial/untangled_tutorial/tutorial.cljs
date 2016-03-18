@@ -13,6 +13,7 @@
     untangled-tutorial.G-Mutation-Exercises
     untangled-tutorial.H-Server-Interactions
     untangled-tutorial.Z-Glossary
+    untangled-tutorial.Z-Query-Quoting
     [devtools.core :as devtools]))
 
 (defonce devtools-installed
