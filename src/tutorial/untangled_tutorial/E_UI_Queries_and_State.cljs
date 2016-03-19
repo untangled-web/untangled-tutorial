@@ -166,7 +166,7 @@
   ```
 
   because they think \"this component just needs what the child needs\". If that is truly the case, then
-  Widget should not have a query at all (the parent should compose OtherWidget's into it's own query). The most common
+  Widget should not have a query at all (the parent should compose OtherWidget's into its own query). The most common
   location where this happens is at the root, where you may not want any specific data yourself.
 
   In that case, you *do* need a stateful component at the root, but you'll need to get the child data
