@@ -288,7 +288,7 @@
 
   ### External Library State (a D3 example)
 
-  Say you want to draw something with D3. D3 has it's own DOM diffing algorithms, and you want to
+  Say you want to draw something with D3. D3 has its own DOM diffing algorithms, and you want to
   make sure React doesn't muck with the DOM. The following component demonstrates how you would go about it.
 
   First, the actual rendering code that expects the component and the props (which have to
