@@ -121,7 +121,7 @@
 
   ```
   (swap! state assoc-in [:people/by-id 7] {:id 7 :person/name \"Andy\"})
-  (swap! state update :people/friends conj [:people/by-id 3])
+  (swap! state update :people/friends conj [:people/by-id 7])
   ```
 
   to result in the following app database state:
