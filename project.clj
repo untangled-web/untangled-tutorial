@@ -63,7 +63,7 @@
                                :output-dir           "resources/public/js/specs"
                                :recompile-dependents true
                                }}
-{:id           "automated-tests"
+               {:id           "automated-tests"
                 :source-paths ["test/client" "test/shared" "src/client" "src/shared"]
                 :compiler     {:output-to     "resources/private/js/unit-tests.js"
                                :main          app.all-tests
