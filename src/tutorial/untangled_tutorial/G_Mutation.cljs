@@ -68,8 +68,10 @@
   The use of parameters means your mutate function will receive parameters, so you can implement this with:
 
   ```
-  (defmethod m/mutate 'app/set-name [{:keys [state] :as env} key {:keys [person name] :as params}]
-    { :action (fn [] (swap! state update-in [:people/by-id person] assoc :person/name name))})
+  (defmethod m/mutate 'app/set-name
+    [{:keys [state] :as env} key {:keys [person name] :as params}]
+    {:action (fn []
+      (swap! state update-in [:people/by-id person] assoc :person/name name))})
   ```
 
   Given that the rest of your database will refer to the table item, there is nothing else to do as far as the
@@ -100,12 +102,14 @@
                     4 { :id 4 :person/name \"May\" }}}
   ```
 
-  You'll need to simple do the data manipulations to make it look right. For example, to add \"Tom\" to your friends,
-  your mutation action thunk would basically need to:
+  You'll need to simply do the data manipulations to make it look right. For example, to add \"Tom\" to your friends,
+  your mutation action thunk would basically need to do:
 
   ```
   (swap! state update :people/friends conj [:people/by-id 3])
   ```
+
+  ... resulting in the following app database state:
 
   ```
   { :people/friends [ [:people/by-id 1] [:people/by-id 2] [:people/by-id 3] ]
@@ -124,10 +128,10 @@
   (swap! state update :people/friends conj [:people/by-id 3])
   ```
 
-  to result in the following app database state:
+  ... resulting in the following app database state:
 
   ```
-  { :people/friends [ [:people/by-id 1] [:people/by-id 2] [:people/by-id 7]]
+  { :people/friends [ [:people/by-id 1] [:people/by-id 2] [:people/by-id 3] [:people/by-id 7] ]
     :people/by-id { 1 { :id 1 :person/name \"Joe\" }
                     2 { :id 2 :person/name \"Sally\" }
                     3 { :id 3 :person/name \"Tom\" }
@@ -148,7 +152,7 @@
   the power of data structure tools in cljs, it is simple enough to scan the database for idents, and then remove
   anything from the tables that are not in this collected set of idents.
 
-  ## Details on Refreshing Components after Mutation
+  ## Details on refreshing components after mutation
 
   After doing a mutation, you can trigger re-renders by listing query bits after the mutation. Any keywords you list
   will trigger re-renders of things that queried for those keywords. Any idents (e.g. `[:db/id 4]`) will trigger
@@ -170,12 +174,12 @@
   queries are run, the results are focused to the target components, and those components are re-rendered. Of course,
   if the state hasn't changed, then React will optimize away any actual DOM change.
 
-  ## Untangled Built-in Mutations
+  ## Untangled built-in mutations
 
-  ### UI Attributes
+  ### UI attributes
 
   There is a special use-case in your applications for attributes in a component query: local, UI-only data. For
-  example, is a checkbox checked. Om generally hooks this stuff up to component-local state, but that makes
+  example, is a checkbox checked. Om generally hooks this stuff up to component local state, but that makes
   debugging more difficult, and it also makes some user interactions invisible to the support VCR viewer. Instead,
   if you namespace these UI-only attrubutes to `ui`, they will be elided from server queries (see Server Interactions).
 

@@ -13,7 +13,7 @@
 
 (defcard-doc
   "
-  # Building the Server
+  # Building the server
 
   **NOTE: This section is in progress, and is being re-worked from the Om-Tutorial...See untangled-todomvc for
   a working complete example.**
@@ -25,7 +25,7 @@
   You should have a firm understanding of Stuart's component library, since we won't be covering that
   in detail here.
 
-  ## Constructing a Base Server
+  ## Constructing a base server
 
   The base server is trivial to create:
 
@@ -51,7 +51,7 @@
       :components {}))
   ```
 
-  ### Configuring the Server
+  ### Configuring the server
 
   Server configuration requires two EDN files:
 
@@ -92,7 +92,7 @@
   The component library, of course, figures out the dependency order and ensures things are initialized
   and available where necessary.
 
-  ### Making Components Available in the Processing Environment
+  ### Making components available in the processing environment
 
   Any components in the server can be injected into the processing pipeline so they are
   available when writing your mutations and query procesing. Making them available is as simple
@@ -105,7 +105,7 @@
       ...))
   ```
 
-  ### Provisioning a Request Parser
+  ### Provisioning a request parser
 
   All incoming client communication will be in the form of Om Queries/Mutations. Om supplies
   a parser to do the low-level parsing, but you must supply the bits that do the real logic.
@@ -134,7 +134,7 @@
 
 (defcard-doc
   "
-  ## Processing Reads
+  ## Processing reads
 
   The Om parser is exactly what it sounds like: a parser for the query grammar. Now, formally
   a parser is something that takes apart input data and figures out what the parts mean (e.g.
@@ -202,7 +202,7 @@
 
 (defcard-doc
   "
-  ### Injecting Some Kind of Database
+  ### Injecting some kind of database
 
   In order to play with this on a server, you'll want to have some kind of state
   available. The most trivial thing you can do is just create a global top-level atom
@@ -218,7 +218,7 @@
 
   Much of the remainder of this section assumes this.
 
-  ## Implementing Read
+  ## Implementing read
 
   When building your server you must build a read function such that it can
   pull data to fufill what the parser needs to fill in the result of a query parse.
@@ -502,7 +502,7 @@
   So, let's put a little better state in our application, and write a
   more realistic parser.
 
-  ### A Non-trivial, Recursive Example
+  ### A Non-trivial, recursive example
 
   Let's start with the following hand-normalized application state:
 

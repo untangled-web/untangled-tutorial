@@ -5,7 +5,7 @@
 
 (defcard-doc
   "
-  # Builing an Untangled Client
+  # Building an Untangled client
 
   We're now prepared to write a standalone Untangled Client! Once you've understood
   how to build the UI and do a few mutations it actually takes very little code:
@@ -42,7 +42,7 @@
 
   Wow! That's a lot for two lines of code.
 
-  ## Recommended Application Layout for Development
+  ## Recommended application layout for development
 
   A lot of thought has gone into how to lay out your application to be able to:
 
@@ -72,7 +72,7 @@
   ensures that the user development namespace is always reloaded. Since `mount` is called there, this is usually
   sufficient.
   - The application itself has a (protocol) method named `refresh`. You can configure
-  figwheel to invoke a function that calls thta after each load.
+  figwheel to invoke a function that calls that after each load.
 
   However, in order to get *React* to actually re-render, you have to cooperate by adding a react
   key from your app state onto your top-level DOM node, like this:
@@ -146,11 +146,13 @@
 
   Once you've installed these you'll get features like:
 
-  - Use `(js/console.log v)` and `v` will display as Clojurescript data
-  - See cljs variables and other runtime information in the source debugger as Clojurescript data
+  - Use `(js/console.log v)` and `v` will display as ClojureScript data
+  - See cljs variables and other runtime information in the source debugger as ClojureScript data
 
   These tools are critical when trying to debug your application, as you can actually clearly see
   what is going on!
+
+  Let's look closer at [mutation](#!/untangled_tutorial.G_Mutation) now.
 
   "
   )

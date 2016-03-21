@@ -6,7 +6,7 @@
 
 (defcard-doc
   "
-  # Server Interaction
+  # Server interaction
 
   The semantics of server request processing in Untangled have a number of guarantees
   that Om does not (out of the box) provide:
@@ -21,7 +21,7 @@
 
   Remote reads in Untangled are explicit. There is no Om parser to write on the client side.
 
-  ### UI Attributes
+  ### UI attributes
 
   Untangled recognizes the need to separate attributes that are UI-only and those that should actually be sent to
   the server. If a component, for example, wants to query for:
@@ -40,7 +40,7 @@
   helpers that can be used to update these without writing custom mutation code. See the section on Mutation)
 
 
-  ### Data Merge
+  ### Data merge
 
   When the server responds Untangled will merge them into the application client database. It overrides the built-in Om
   shallow merge. Untangled's data merge has a number of extension that are useful for
@@ -78,10 +78,10 @@
   with normalization).
 
   Therefore, you almost *never* want to use a hand-written query that has not been placed on a `defui`. It is perfectly
-  acceptable to define queries via defui to ensure normalization will work, and this will commonly be the case if your
+  acceptable to define queries via `defui` to ensure normalization will work, and this will commonly be the case if your
   UI needs to ask for data in a structure different from what you want to run against the server.
 
-  ### Query Narrowing
+  ### Query narrowing
 
   The load functions allow you to elide parts of the query using `:without set`. This is useful when you have a query
   that would load way more than you need right now. Using the `:without` parameter on a `load` function will cause it
@@ -93,7 +93,7 @@
 
   TODO: Just like Om
 
-  ### Server Writes
+  ### Server writes
 
   TODO: Just like Om (:remote true); however adds in error handling triggering via tx fallbacks:
 
@@ -119,7 +119,7 @@
 
   TODO: Just like Om
 
-  #### New Item Creation – Temporary IDs
+  #### New item creation – Temporary IDs
 
   TODO: Similar to Om, but `{ :tempids tempidmap }` can be returned from `:action` of server mutation and it will
   just work. The plumbing is pre-written.
@@ -128,7 +128,7 @@
 
   See notes on built-in call (app/load)
 
-  ## Differences from stock Om (next)
+  ## Differences from stock Om (Next)
 
   For those that are used to Om, you may be interested in the differences and rationale behind the way Untangled
   handles server interactions, particularly remote reads.
@@ -161,7 +161,7 @@
 
   So, let's look how we handle the explicit use-cases:
 
-  ### Use Case - Initial Load
+  ### Use case - Initial load
 
   In Om, you'd write a parser, set some initial state indicating 'I need to load this', and in your parser you'd return
   a remote `true` for that portion of the read when you hit it. The intention would then be that the server returning
@@ -198,7 +198,7 @@
   (e.g. showing a dialog that has user-driven recovery choices).
 
 
-  ### Use Case - Lazy Loading
+  ### Use case - Lazy loading
 
   The other major case is wanting to load data in response to a user interaction. Interestingly, the query that you might
   have used in the initial load use case might have included UI queries for data you didn't want to fetch yet. So, we want
@@ -243,7 +243,7 @@
 
   Untangled has supplied all of the Om plumbing for you.
 
-  #### How Reads Work : `app/load`
+  #### How reads work : `app/load`
 
   The helper functions described above simply trigger a built-in Untangled mutation called `app/load`, which you are
   allowed (and sometimes encouraged) to use directly. It is the Untangled method of doing follow-on reads after a remote
@@ -286,7 +286,7 @@
   TODO: See the helper functions `load-collection` and `load-field`. We might add more specific versions of `app/load`
   that provide a clearer end-user API.
 
-  ### Remote Reads after a Mutation
+  ### Remote reads after a mutation
 
   In Om, you can list properties after your mutation to indicate re-renders. You can force them to be remote reads by
   quoting them. All of this requires complex logic in your parser to compare flags on the AST, process the resulting
@@ -317,7 +317,7 @@
   the moment.
 
 
-  ### Global Network activity marker
+  ### Global network activity marker
 
   TODO: Document how to use the network activity marker to show a general purpose loading marker in the UI. Basically query
   to the top-level (via an Om query link).
