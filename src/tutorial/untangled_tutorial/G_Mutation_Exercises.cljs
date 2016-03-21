@@ -9,7 +9,7 @@
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
-(defcard-doc "# Mutation Exercises ")
+(defcard-doc "# Mutation exercises ")
 
 ; TODO: Exercise 1: Implement this mutation
 (defmethod m/mutate 'exercise/g-ex1-inc [{:keys [state]} k p]
@@ -136,7 +136,7 @@
         (map ui-ex3-list lists)))))
 
 (defcard mutation-exercise-3
-  "## Exercise 3 - Mutations and Rendering
+  "## Exercise 3 - Mutations and rendering
 
   Using the same source and mutation from the prior example, try out this card (it won't work
   until you've completed the exercises above, and you may need to reload the browser

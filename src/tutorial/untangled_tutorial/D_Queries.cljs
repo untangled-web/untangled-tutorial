@@ -21,7 +21,7 @@
 
   First, we'll tackle the queries.
 
-  ## Query Syntax
+  ## Query syntax
 
   Queries are written with a variant of Datomic pull syntax.
 
@@ -40,11 +40,11 @@
     :comment [...subquery...] }             ;;union
   ```
 
-  *RECOMMENDATION*: Even if you do not plan to use Datomic, I highly recommend
-  going through the [Datomic Pull Tutorial](http://docs.datomic.com/pull.html).
+  *RECOMMENDATION*: Even if you do not plan to use Datomic, it is highly recommended
+  that you go through the [Datomic Pull Tutorial](http://docs.datomic.com/pull.html).
   It will really help you with Om Next queries.
 
-  ## A quick note on Quoting
+  ## A quick note on quoting
 
   Quoting is not an Om thing, it is a clj(s) thing. The syntax of Om queries is just data, but it
   uses things (like symbols and lists) that the compiler would like to give different meaning to than
@@ -60,7 +60,7 @@
     symbol *within* a syntax quoted form. This prevents a namespace from being added (unquote a form
     that literally quotes the symbol).
 
-  ## Understanding Queries - Properties
+  ## Understanding queries - Properties
 
   Except for unions, queries are represented as vectors.
 
@@ -127,7 +127,7 @@
   [ {:modal-dialog [:message]} ]
   ```
 
-  one might expect that this is a *to one* join (and the corresponding database would have
+  ...one might expect that this is a *to one* join (and the corresponding database would have
   single item at that location), resulting in:
 
   ```
@@ -169,11 +169,11 @@
 
 (defcard-doc "
 
-  ## More Advanced Queries
+  ## More advanced queries
 
-  ### Parameters in the Query
+  ### Parameters in the query
 
-  All of the query elements can be parameterized (this is distictly different than the feature provided
+  All of the query elements can be parameterized (this is distinctly different than the feature provided
   by `IQueryParams`, which is a UI feature for dynamically modifying queries at runtime). All of the
   parameter forms are surrounded by parens, and contain an additional map of k/v pairs that stand
   for the parameters.
@@ -199,7 +199,7 @@
   See the section on [State Reads and Parsing](#!/om_tutorial.E_State_Reads_and_Parsing) for more information
   on writing and interpreting queries that contain parameters.
 
-  ### Looking up by Ident
+  ### Looking up by ident
 
   An Ident is a vector with 2 elements. The first is a keyword and the second is some kind of
   value (e.g. keyword, numeric id, etc.). These are the same idents you saw in the App Database section,
@@ -235,7 +235,7 @@
   {:inspect-data false})
 
 (defcard-doc
-  "### Using Links
+  "### Using links
 
   Links look like idents, but they replace the ID portion with the special symbol `_`. Note
   that symbols need to be quoted, so a query including a link will need to leverage
@@ -270,7 +270,7 @@
 
 (defcard-doc
   "
-  ### Union Queries
+  ### Union queries
 
   When a component is showing a sequence of things and each of those things might be different, then you need
   a union query. Basically, it is a *join*, but it names all of the alternative things that might appear
@@ -314,11 +314,13 @@
 
 (defcard-doc
   "
-  ## Final Notes
+  ## Final notes
 
   In case you're interested:
   In this section we're using the Om function `db->tree` to run the queries. This utility can
   (obviously) understand the basic bits of query syntax and retrieve data. It is insufficient
   for the full guts of a real application, but it is a wonderful helper that greatly simplifies
   the task.
+
+  Now move on to [UI queries and state](#!/untangled_tutorial.E_UI_Queries_and_State).
   ")

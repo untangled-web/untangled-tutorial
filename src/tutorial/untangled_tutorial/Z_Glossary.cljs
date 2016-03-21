@@ -5,7 +5,7 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
 (defcard-doc
-  "# Glossary of Terms
+  "# Glossary of terms
 
   - `Default database format`: A tree of data where all of the objects that have an ident are replaced by that ident, and
     the actual data of those objects is moved to top-level Om-owned tables. See `om/tree->db`.

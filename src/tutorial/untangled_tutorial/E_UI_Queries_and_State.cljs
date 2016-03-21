@@ -11,15 +11,15 @@
 
 (defcard-doc
   "
-  # UI, Queries, and State
+  # UI, queries and state
 
   Now that you understand the database format, how you get data out of that database via
-  the queries, and how you build parser code you're ready to get some UI on the screen
-  via all of those things.
+  the queries, and how you build parser code once you're ready to get some UI on the screen
+  via all of those things?
 
-  ## Co-located Queries on Components
+  ## Co-located queries on components
 
-  ### The Problem
+  ### The problem
 
   So, we've seen great ways to lay out our data into these nice graph databases, and we've seen how
   to query them and even build retrieval code. Two questions remain:
@@ -27,7 +27,7 @@
   1. What's the easiest way to get my data into one of these databases?
   2. How does this relate to my overall UI?
 
-  ### The Solution
+  ### The solution
 
   These two questions are tightly related. David Nolen had this wonderful realization that when
   rendering the tree of your UI you are doing the same thing as when you're evaluating a graph
@@ -142,9 +142,9 @@
 
 (defcard-doc "
 
-  ## Common Mistakes
+  ## Common mistakes
 
-  ### Failing to Reach the UI Root
+  ### Failing to reach the UI root
 
   Om only looks for the query on the root component of your UI! Make sure your queries compose all the way to
   the root! Basically the Root component ends up with one big fat query for the whole UI, but you get to

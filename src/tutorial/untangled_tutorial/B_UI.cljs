@@ -35,20 +35,22 @@
   Om uses <a href=\"https://facebook.github.io/react/index.html\" target=\"_blank\">React</a> underneath.
   The primary mechanism for creating components is the `defui` macro:"
   (dc/mkdn-pprint-source Widget)
-  "This macro generates a React Class as a plain javascript class, so it is completely compatible with the
+  "This macro generates a React class as a plain JavaScript class, so it is completely compatible with the
   React ecosystem.
 
-  Notice the use of `Object`. It indicates that the following list of method bodies (like in protocols) are being
-  added to the general class. From an OO perspective, this is like saying \"my widget extends Object\". The
-  `render` method is the only method you need, but you can also add in your own methods or React lifecycle methods.
+  Notice the use of `Object`. It indicates that the following method bodies (like in <a
+  href=\"http://clojure.org/reference/protocols\" target=\"_blank\">protocols</a>) are being added to the
+  generated class. From an OO perspective, this is like saying \"my widget extends Object\". The `render`
+  method is the only method you need, but you can also add in your own methods or React lifecycle
+  methods.
 
   In the author's opinion the render method should be a pure function whenever possible (avoiding component
-  local state if at all possible). Making your rendering pure means that if you ever feel the need to write
-  tests around how the UI works (say, for acceptance testing) that you can do so very easily. The lack
+  local state). Making your rendering pure means that if you ever feel the need to write
+  tests around how the UI works (say, for acceptance testing) then you can do so very easily. The lack
   of local state means that the code tends to be so simple as to avoid most of the bugs that plague other
   frameworks.
 
-  ## React Lifecycle Methods
+  ## React lifecycle methods
 
   If you wish to provide <a href=\"https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods\"
   target=\"_blank\">lifecycle methods</a>, you can define them under the Object section of the UI:
@@ -144,23 +146,23 @@
   (defcard root-render (root {:number 52 :people [{:name \"Sam\"} {:name \"Joe\"}]}))
   ```
 
-  It is important to note that _this is exactly how the composition of UI Components always happens_, independent of
+  It is important to note that _this is exactly how the composition of UI components always happens_, independent of
   whether or not you use the rest of the features of Om. A root component calls the factory functions of subcomponents
   with an edn map as the first argument. That map is accessed using `om/props` on `this` within the subcomponent. Data
   is passed from component to component through `props`.
 
-  ### Don't forget the React DOM Key!
+  ### Don't forget the React DOM key!
 
   You might notice something new here: the `om/factory` function is supplied with an additional map `{:keyfn :name}`.
   The factory function can be optionally supplied with two keywords: `:keyfn` and `:validator`. `:keyfn` produces the
   <a href=\"https://facebook.github.io/react/docs/multiple-components.html\" target=\"_blank\">React key property</a>
-  from component props (here it's `:name`), while `:validator`takes a function that asserts the validity of the props received.
+  from component props (here it's `:name`), while `:validator` takes a function that asserts the validity of the props received.
 
   The key is critical, as it helps React figure out the DOM diff. If you see warning about elements missing
   keys (or having the same key) it means you have adjacent elements in the DOM of the same type, and React cannot
   figure out what to do to make sure they are properly updated.
 
-  ## Play With It
+  ## Play with it
 
   At this point (if you have not already) you should play with the code in `B-UI.cljs`. Search for `root-render`
   and then scan backwards to the source. You should try adding an object to the properties (another person),
@@ -186,11 +188,11 @@
 
 (defcard-doc
   "
-  ## Out-of-band Data: Callbacks and such
+  ## Out-of-band data: Callbacks and such
 
   In plain React, you store component local state and pass stuff from the parent through props.
-  Om is no different, though component-local state is a matter of much debate since you get many advantages from
-  having a stateless UI. In React, you also pass your callbacks through props. In Om, we need a slight variation of
+  Om is no different, though component local state is a matter of much debate since you get many advantages from
+  having a stateless UI. In React, you also pass your callbacks through props. We need a slight variation of
   this.
 
   In Om, a component can have a query that asks the underlying system for data. If you complect callbacks and such
@@ -200,10 +202,10 @@
   As such, Om has an additional mechanism for passing things that were not specifically asked for in a query: Computed
   properties.
 
-  For your Om UI to function properly you must attach computed properties *to* props via the helper function `om/computed`.
+  For your Om UI to function properly you must attach computed properties to props via the helper function `om/computed`.
   The child can look for these computed properties using `get-computed`.
 
-  (remember about the use of `clj->js`...devcards can't currently render the source of something with reader tags in it.
+  (Remember about the use of `clj->js`...devcards can't currently render the source of something with reader tags in it.
   You'd normally write `#js { :onClick ...}`).
 
   "
@@ -212,9 +214,9 @@
   (dc/mkdn-pprint-source root-computed)
 
   "
-  ## Play with It!
+  ## Play with it!
 
-  Open B-UI.cljs, search for `passing-callbacks-via-computed`, and you'll find the card shown below. Interact with it
+  Open `B-UI.cljs`, search for `passing-callbacks-via-computed`, and you'll find the card shown below. Interact with it
   in your browser, play with the source, and make sure you understand everything we've covered so far.
   ")
 
@@ -269,9 +271,13 @@
 (defcard-doc
   "
 
-  ## Stateful Components
+  ## Stateful components
 
-  Earlier we stress that your components should be stateless whenever possible. There are a few
+  FIXME: Distinguish between stateless and components with/without queries. In one sense, we're talking
+  about components that ask for no external data, and in the other we're talking about hidden local state
+  that a component stores (in the DOM or component-local React state).
+
+  Earlier we stressed that your components should be stateless whenever possible. There are a few
   notable exceptions that we have found useful (or even necessary):
 
   - The Untangled support viewer shows each app state change. User input (each letter they type) can
@@ -286,13 +292,13 @@
   component local state. For text controls we'd recommend you leave it this way. For other controls like
   checkboxes it is probably best to override this (demonstrated later).
 
-  ### External Library State (a D3 example)
+  ### External library state (a D3 example)
 
   Say you want to draw something with D3. D3 has its own DOM diffing algorithms, and you want to
   make sure React doesn't muck with the DOM. The following component demonstrates how you would go about it.
 
   First, the actual rendering code that expects the component and the props (which have to
-  be converted to JS data types to work) (See D3 Tutorials on the Web):
+  be converted to JS data types to work. See further D3 tutorials on the web):
   "
 
   (dc/mkdn-pprint-source render-squares)
@@ -338,16 +344,16 @@
 
   - We override the React lifecycle method `shouldComponentUpdate` to return false, so that React doesn't try to mess with
   the DOM created by D3.
-  - We override `componentWillReceiveProps` and `componentDidMount` do the actual D3 render/update. Our render method
+  - We override `componentWillReceiveProps` and `componentDidMount` to do the actual D3 render/update. Our render method
   is idempotent, and figures out the actions to take via D3 mechanisms.
 
-  ## Important Notes and Further Reading
+  ## Important notes and further reading
 
-  - Remember to use `#js` (shown as `clj->js` in many examples) to transform attribute maps for passing to DOM elements
+  - Remember to use `#js` (shown as `clj->js` in many examples) to transform attribute maps for passing to DOM elements.
   - Use *cljs* maps as input to your own Elements: `(my-ui-thing {:a 1})` and `(dom/div #js { :data-x 1 } ...)`.
   - Extract properties with `om/props`. This is the same for stateful (with queries) or stateless components.
   - Add parent-generated things (like callbacks) using `om/computed` and pull them from the component with
-    `(om/get-computed)`.
+    `(om/get-computed (om/props this)`.
 
 
   You may do additional [UI exercises](#!/untangled_tutorial.B_UI_Exercises), or continue on to the
