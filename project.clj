@@ -14,7 +14,7 @@
                  [navis/untangled-datomic "0.4.4"]]
 
   ; server source paths
-  :source-paths ["src/server" "src/shared" "test/server" "test/shared"]
+  :source-paths ["src/server" "src/shared" "src/tutorial" "test/server" "test/shared"]
   :test-paths ["test/server" "test/shared"]
 
   :plugins [[lein-cljsbuild "1.1.2"]
