@@ -30,7 +30,7 @@
   If you structure your data as a tree (for UI benefit), then you have to duplicate the
   data across the tree. Note that now what you have is really a graph.
 
-  TODO: diagram of graph described above (root -> (table,chart), table -> perf stats, chart -> perf stats)
+  <img src=\"svg/ui-tree-dependency-graph.svg\"></img>
 
   You might think this is OK (structural sharing and pointers make this
   nearly free) until you consider what happens next: time passes. The data needs to update.
