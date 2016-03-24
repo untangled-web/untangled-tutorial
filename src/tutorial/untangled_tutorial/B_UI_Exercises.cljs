@@ -4,6 +4,8 @@
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+(enable-console-print!)
+
 (defcard-doc
 
   "# UI Exercises
