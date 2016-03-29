@@ -271,6 +271,10 @@
 
   ## Stateful Components
 
+  FIXME: Distinguish between stateless and components with/without queries. In one sense, we're talking  
+  about components that ask for no external data, and in the other we're talking about hidden local state
+  that a component stores (in the DOM or component-local React state).
+
   Earlier we stress that your components should be stateless whenever possible. There are a few
   notable exceptions that we have found useful (or even necessary):
 
