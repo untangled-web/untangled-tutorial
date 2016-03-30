@@ -109,26 +109,38 @@
   (dc/mkdn-pprint-source qd/Root)
   "
 
-  The above components make the following UI tree:
+  The above components make the following UI and query trees:
 
-  TODO: UI Tree diagram
+  <table>
+    <tr>
+      <td style=\"text-align:center;\"><strong>UI Tree</strong></td>
+      <td style=\"padding-left:80px;\"></td>
+      <td style=\"text-align:center;\"><strong>Query Tree</strong></td>
+    </tr>
+    <tr>
+      <td><img src=\"svg/query-demo-ui-tree.svg\"></img></td>
+      <td style=\"padding-left:80px;\"></td>
+      <td><img src=\"svg/query-demo-query-tree.svg\"></img></td>
+    </tr>
+  </table>
 
-  and the queries form the following query tree:
-
-  TODO: Query diagram
-
-  which does not have anything for the `PeopleWidget` because it does not have a query.
+  Note that the query tree does not have anything for the `PeopleWidget` because that component does not have a query.
 
   Pay careful attention to how the queries are
   composed (among stateful components). It is perfectly fine for a UI component to not participate in the query,
   in which case you must remember that the walk of render will not match the walk of the result data. This
   is shown in the above code: note how the root element asks for `:people`, and the render of the root
   pulls out that data and passes it down. Then note how `PeopleWidget` pulls out the entire properties
-  and passes them on to the component that asked for those details. In fact, you can change `PeopleWidget`
-  into a simple function. There is no specific need for it to be a component, as it is really just doing
-  what the root element needed to do: pass the items from the list of people it queried into the
-  final UI children (`Person`) that asked for the details found in each of the items. The middle widget isn't
+  and passes them on to the component that asked for those details.
+
+  In fact, you can change `PeopleWidget` into a simple function. There is no specific need for it to be a component,
+  as it is really just doing what the root element needed to do: pass the items from the list of people it queried
+  into the final UI children (`Person`) that asked for the details found in each of the items. The middle widget isn't
   participating in the state tree generation, it is merely an artifact of rendering.
+
+  One common reason to create a component without a query (rather than a UI function) would be if you needed to store
+  something using component local state. For example, a web form that wants to keep track of the user's progress, but
+  will pass the submitted form data to another component for processing.
 
   So, this example will render correctly when the query result looks like what you see in the card below:
 ")
@@ -186,4 +198,5 @@
   Sometimes you're just trying to clean up code and factor bits out. Don't feel like you have to wrap UI code in
   `defui` if it doesn't need any support from React or Om. Just write a function! `PeopleWidget` earlier in this
   document is a great example of this.
+
   ")

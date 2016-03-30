@@ -188,7 +188,7 @@
   "
   ## Out-of-band Data: Callbacks and such
 
-  In plain React, you store component local state and pass stuff from the parent through props.
+  In plain React, you store component local state and pass data from the parent to the child through props.
   Om is no different, though component-local state is a matter of much debate since you get many advantages from
   having a stateless UI. In React, you also pass your callbacks through props. In Om, we need a slight variation of
   this.
