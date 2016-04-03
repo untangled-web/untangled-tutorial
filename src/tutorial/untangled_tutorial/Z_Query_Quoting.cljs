@@ -11,7 +11,7 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
 (defcard-doc
-  "# Quoting Queries
+  "# Quoting queries
 
   In general you should do a full tutorial on macros which will give you a great
   facility with quoting. This appendix to the tutorial is to help you see the

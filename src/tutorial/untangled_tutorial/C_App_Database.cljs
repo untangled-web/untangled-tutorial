@@ -8,7 +8,7 @@
 
 (defcard-doc
   "
-  # App Database
+  # App database
 
   In this section we'll discuss the database format used by Untangled for client state. Untangled
   has chosen to not allow pluggable database formats. This allows the framework to do a lot of
@@ -17,14 +17,14 @@
 
   First, we'll describe the problem, and then show how Om's approach to storing app state solves it.
 
-  ## The Problem
+  ## The problem
 
   Any non-trivial UI needs data. Many non-trivial UIs need a lot of data. React UIs need data to
   be in a tree-like form (parents pass properties down to children). When you combine these facts
-  with Clojurescript and immutabe data structures you end up with some interesting
+  with ClojureScript and immutabe data structures you end up with some interesting
   challenges.
 
-  The most important one is this: What do I do when I want to show the same information in
+  The most important one is this: What do we do when we want to show the same information in
   two different UI components (e.g. a Table and a Chart of some performance statistics)?
 
   If you structure your data as a tree (for UI benefit), then you have to duplicate the
@@ -43,7 +43,7 @@
   concern (updating the data for a table) into a global one (what is using *this* bit of state in my
   global application state?).
 
-  ## The Solution
+  ## The solution
 
   Experienced readers will recognize that the solution is the one we've been using in databases
   for quite a long time: normalization...de-dupe the data!
@@ -99,11 +99,11 @@
   other. Note that this particular graph (as you might expect) has a loop in it (Joe is married
   to Sally who is married to Joe ...).
 
-  ## Everything in Tables
+  ## Everything in tables
 
   By now you might have realized that you can put just about everything into this table format.
 
-  For example if I have multiple different lists of people I might choose to store
+  For example, if we have multiple different lists of people we might choose to store
   *those* in more of a table format:
 
   ```
@@ -141,7 +141,7 @@
   allows you to easily generate a tree for rendering (as we'll see soon),
   and the flat structure makes mutation code easy to write and maintain.
 
-  ## Bleh, manual graph building...Do I have to build that by hand???
+  ## Bleh, manual graph building... Do I have to build that by hand?
 
   No. You do not need to build normalized graph databases. Untangled can do that for you. You simply
   create the tree that the UI wants to see, and then hand it to Untangled and it will use
@@ -153,6 +153,6 @@
   also found hand-generating normalized state really isn't difficult, and is easier
   for some to reason about.
 
-  You should definitely do the [database  exercises](#!/untangled_tutorial.C_App_Database_Exercises).
+  You should definitely do the [database exercises](#!/untangled_tutorial.C_App_Database_Exercises).
   ")
 

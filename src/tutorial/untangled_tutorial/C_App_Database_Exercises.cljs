@@ -8,7 +8,7 @@
 
 (defcard-doc
   "
-  # App Database Exercises
+  # App database exercises
 
   Open the namespace `untangled-tutorial.app-database.exercises`. There are TODO
   placeholders for each exercise.

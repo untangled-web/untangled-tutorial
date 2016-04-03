@@ -15,7 +15,7 @@
   other things while also developing production software. Please be patient with us and feel
   free to suggest (or make) contributions.
 
-  ## About This Tutorial
+  ## About this tutorial
 
   This tutorial is written in Bruce Hauman's excellent Devcards. As such, these documents are live code!
 
@@ -33,7 +33,7 @@
 
 (defcard-doc
   "
-  Open up the A_Introduction.cljs, search for `sample-card`, edit the numbers, save, and watch this page refresh. You
+  Open up the `A_Introduction.cljs`, search for `sample-card`, edit the numbers, save, and watch this page refresh. You
   are encouraged to play with the source code and examples in the tutorial to verify your understanding as you read.
   Devcards support state as well, and will track it in an atom for you. Thus, you can generate UI that actually responds
   to user interaction:
@@ -71,7 +71,7 @@
   might make sense to kill the REPL, use git to get to a known good source state, and
   clean things with `lein clean` and then restart.
 
-  ## Notes on documentation:
+  ## Notes on documentation
 
   Om wrappers on plain DOM elements take as their second parameter a javascript map (not a cljs one) or nil. As such, you
   usually write your UI like this:
@@ -88,8 +88,8 @@
 
   Devcards has a really cool feature where you can pull live source into the documentation. Unfortunately, the
   mechanism it uses to do this (the `cljs.repl/source` function) cannot currently handle reader tags. So, in
-  some examples I'm using the `cljs->js` function instead to make sure the docs and source stay in sync. I
-  feel the latter is more important than the former, and once the source pulling is fixed it will be easy to
+  some examples we'll be using the `cljs->js` function instead to make sure the docs and source stay in sync. For
+  a tutorial, the latter is more important than the former, and once the source pulling is fixed it will be easy to
   fix the source and have all of the documentation automatically update.
 
   [Let's start with the UI.](#!/untangled_tutorial.B_UI)
