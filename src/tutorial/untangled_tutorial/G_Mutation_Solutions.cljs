@@ -2,7 +2,7 @@
   (:require [devcards.core :as dc :include-macros true :refer-macros [defcard defcard-doc dom-node]]))
 
 (defcard-doc
-  "# Mutation Solutions
+  "# Mutation solutions
 
   The solutions are shown below:
 
@@ -22,7 +22,7 @@
 
   Exercise 3:
 
-  In the defui of the item, the calls to transact need to include `:items`, as shown below:
+  In the `defui` of the item, the calls to transact need to include `:items`, as shown below:
 
   ```
   (render [this]

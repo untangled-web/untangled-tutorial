@@ -8,7 +8,7 @@
 
 (defcard-doc
 
-  "# UI Exercises
+  "# UI exercises
 
   In this tutorial we are going to build an app with just enough complexity to
   exercise the most significant features of Om. That said, we want it to be
@@ -42,9 +42,9 @@
           (dom/button nil "Add Person"))))))
 
 (defcard overall-goal
-  "## Overall Goal
+  "## Overall goal
 
-  In the following exercises we'll build a UI using Om defui.
+  In the following exercises we'll build a UI using Om `defui`.
   Once the UI is built, we'll add in a little component local state and callback handling.
 
   The UI will show a list of people and their
@@ -73,26 +73,26 @@
 
 (defui Person
   Object
-  (initLocalState [this] {})                                ;; TODO (ex 3): Add initial local state here
+  (initLocalState [this] {})                                ; TODO (ex 3): Add initial local state here
 
   (render [this]
-    ; TODO: (ex 4) obtain the 'computed' onDelete handler
-    (let [name "name"                                       ;; TODO (ex 1): Get the Om properties from this
+    ;; TODO: (ex 4) Obtain the 'computed' onDelete handler
+    (let [name "name"                                       ; TODO (ex 1): Get the Om properties from this
           mate nil
-          checked false]                                    ;; TODO (ex 3): component local state
+          checked false]                                    ; TODO (ex 3): Component local state
       (dom/li nil
         (dom/input #js {:type    "checkbox"
                         :onClick (fn [e] (println "TODO ex 3"))
-                        :checked false                      ; TODO: ex-3: modify local state
+                        :checked false                      ; TODO (ex 3): Modify local state
                         })
-        (dom/span nil name)                                 ; TODO: ex 3. Make name bold when checked
-        (dom/button nil "X")                                ; TODO: (ex 4) call onDelete handler, if present
+        (dom/span nil name)                                 ; TODO (ex 3): Make name bold when checked
+        (dom/button nil "X")                                ; TODO (ex 4): Call onDelete handler, if present
         (when mate (dom/ul nil (om-person mate)))))))
 
 (def om-person (om/factory Person))
 
 (defcard exercise-1
-  "## Exercise 1 - A UI Component
+  "## Exercise 1 - A UI component
 
   Create an Om Person UI component. No need to add a query yet. The main
   task is to make sure you understand how to get the properties via
@@ -110,7 +110,7 @@
 (defui PeopleWidget
   Object
   (render [this]
-    ; TODO: (ex 4): Create a deletePerson function
+    ;; TODO (ex 4): Create a deletePerson function
     (let [people []]                                        ; TODO (ex 2): Get yo stuff
       (dom/div nil
         (if (= nil people)
@@ -118,7 +118,7 @@
           (dom/div nil
             (dom/button #js {} "Save")
             (dom/button #js {} "Refresh List")
-            ; TODO: (ex 4) pass deletePerson as the onDelete handler to person element
+            ;; TODO (ex 4): Pass deletePerson as the onDelete handler to person element
             (dom/ul nil (map #(om-person %) people))))))))
 
 (def people-widget (om/factory PeopleWidget))
@@ -139,9 +139,9 @@
 (def om-root (om/factory Root))
 
 (defcard exercise-2
-  "## Exercise 2 - A UI Tree
+  "## Exercise 2 - A UI tree
 
-  Continue and build out two more components as seen in the source just above this file.
+  Continue and build out two more components as seen in the source just above this card.
 
   NOTE: If you look in the
   data below, you'll see our desired UI tree in data form. Use `om/props` to pull out the
@@ -178,7 +178,7 @@
 
   The proper attributes for the checkbox input are `:checked` and `:onClick`.
 
-  To ensure you got the initial state right make it is the default that a person is checked.
+  To ensure you got the initial state right make it the default that a person is checked.
   "
   (fn [state-atom _]
     (om-person @state-atom))
@@ -189,18 +189,18 @@
   "
   ## Exercise 4 - Computed properties
 
-  In Om, you should not try to pass callback directly through props. While this
+  In Om, you should not try to pass callbacks directly through props. While this
   would technically work, this combines the state management with computed
   attributes (e.g. callbacks).
 
   Instead, callbacks and other UI-generated data should be passed into an
-  Om component using `om/computed`:
+  Om component using `om/computed`...
 
   ```
   (om-component (om/computed props { :computed-thing 4 }))
   ```
 
-  and may be retrieved using `om/get-computed` on either the `props` or `this`
+  ...and may be retrieved using `om/get-computed` on either the `props` or `this`
   passed to render.
 
   Internally, computed just places this data in a side-band area (e.g. metadata) so
@@ -224,3 +224,6 @@
                          {:db/id 1 :person/name "Joe" :person/mate {:db/id 2 :person/name "Sally"}}
                          {:db/id 2 :person/name "Sally" :person/mate {:db/id 1 :person/name "Joe"}}]}}
   {:inspect-data true})
+
+(defcard-doc
+  "Now that you've completed the UI exercises, move on to the [app database](#!/untangled_tutorial.C_App_Database) section.")

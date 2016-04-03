@@ -6,7 +6,7 @@
 
 (defcard-doc
   "
-  # Putting it All Together
+  # Putting it all together
 
   In this section we'll put all of the pieces together into a fully functioning, full-stack application.
 

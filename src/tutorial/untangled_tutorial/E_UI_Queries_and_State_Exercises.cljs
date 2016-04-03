@@ -58,7 +58,7 @@
 (def om-root (om/factory Root))
 
 (defcard-doc
-  "# Query Exercises
+  "# Query exercises
 
   In this section you learned about queries. In the following exercises we'll continue
   working on our components from the UI Exercises section. The suggested solution to
@@ -102,3 +102,6 @@ TODO: Split this into smaller bits.
    :widget     {:people [{:person/name "Joe" :db/id 1 :person/mate {:person/name "Sally" :db/id 2}}
                          {:person/name "Sally" :db/id 2 :person/mate {:person/name "Joe" :db/id 1}}]}}
   {:inspect-data true})
+
+(defcard-doc
+  "Now that we've got the basics, let's put it together in [building an Untangled client](#!/untangled_tutorial.F_Untangled_Client).")
