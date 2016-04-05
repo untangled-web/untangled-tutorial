@@ -187,6 +187,67 @@
   the above indicates that when `f` is called it will schedule `(g)` to run 200ms from \"now\" and `(h)` to run
   300ms from \"now\". Then `f` will return `true`.
 
+  ## Datomic Testing Support
+
+  NOTE: Requires `untangled-datomic` in your project file.
+
+  Untangled includes top-notch utilities for doing focused integration tests against an in-memory database. This
+  allows you to quickly get your low-level database code correct without having to mess with a UI or full stack.
+
+  ### Database fixtures
+
+  The `with-db-fixture` macro creates an in-memory database with a schema of your Datomic migrations. It supports
+  the following:
+
+  - Running your migrations on an in-memory database localized to your test
+  - Seeding that database via a function you supply (which just returns transaction data)
+    - Returning a map from temporary ids in your seed data to real datomic ids in the resulting database
+
+  #### Seed functions
+
+  The seed function is very simple: Just return a list of legal Datomic transaction, but use `:datomic.id/X` in
+  place of database IDs anywhere they make sense! This allows you to create any graph of data you need:
+
+  ```
+  (defn seed1 []
+     [{:db/id :datomic.id/thing :thing/name \"Boo\" }
+      {:db/id :datomic.id/list :list/things #{:datomic.id/thing}}])
+
+  (specification \"Boo\"
+    (with-db-fixture db
+       (behavior ...)
+       :migrations \"namespace.of.migrations\"
+       :seed-fn seed1))
+  ```
+
+  The fact that the seed is a function means you can compose your seed functions for quick, DRY test data generation.
+
+  To get the remapped IDs, it helps to use something like this:
+
+  ```
+  (defn db-fixture-defs
+    \"Given a db-fixture returns a map containing:
+    `connection`: a connection to the fixture's db
+    `get-id`: give it a temp-id from seeded data, and it will return the real id from seeded data\"
+    [fixture]
+    (let [connection (udb/get-connection fixture)
+          tempid-map (:seed-result (udb/get-info fixture))
+          get-id (partial get tempid-map)]
+      {:connection connection
+       :get-id     get-id}))
+  ```
+
+  which can be combined into it like this:
+
+  ```
+  (with-db-fixture fixture
+     (let [{:keys [connection get-id]} (db-fixture-defs fixture)
+           thing-id (get-id :datomic.id/thing)
+           thing (d/entity (d/db connection) thing-id)]
+           ; check out thing
+       ))
+  ```
+
   ## Protocol Testing
 
   Untangled client and server include utilities to help you test network protocols without a network. The idea is to
@@ -196,4 +257,6 @@
 
   TODO: Document this...
   ")
+
+
 
