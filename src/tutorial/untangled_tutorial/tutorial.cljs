@@ -14,6 +14,7 @@
     untangled-tutorial.G-Mutation-Solutions
     untangled-tutorial.H-Server-Interactions
     untangled-tutorial.I-Building-A-Server
+    untangled-tutorial.I-Building-A-Server-Exercises
     untangled-tutorial.J-Putting-It-Together
     untangled-tutorial.Z-Glossary
     untangled-tutorial.Z-Query-Quoting

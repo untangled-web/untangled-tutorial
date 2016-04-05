@@ -41,68 +41,58 @@
   ; i18n lein plugin config
   :untangled-i18n {:default-locale        "en-US"
                    :translation-namespace "app.i18n"
-                   :source-folder         "src/client"
+                   :source-folder         "src/tutorial"
                    :target-build          "i18n"}
 
-  :cljsbuild {:builds
-              [{:id           "client"
-                :figwheel     true
-                :source-paths ["dev/client" "src/client" "src/shared"]
-                :compiler     {:main                 cljs.user
-                               :asset-path           "js/main"
-                               :output-to            "resources/public/js/main.js"
-                               :output-dir           "resources/public/js/main"
-                               :recompile-dependents true
-                               :verbose              false}}
-               {:id           "test"
-                :figwheel     true
-                :source-paths ["src/client" "src/shared" "test/client" "test/shared"]
-                :compiler     {:main                 app.suite
-                               :asset-path           "js/specs"
-                               :output-to            "resources/public/js/specs.js"
-                               :output-dir           "resources/public/js/specs"
-                               :recompile-dependents true
-                               }}
-               {:id           "automated-tests"
-                :source-paths ["test/client" "test/shared" "src/client" "src/shared"]
-                :compiler     {:output-to     "resources/private/js/unit-tests.js"
-                               :main          app.all-tests
-                               :asset-path    "js"
-                               :output-dir    "resources/private/js"
-                               :optimizations :none
-                               }}
-               {:id           "tutorial"
-                :figwheel     {:devcards true}
-                :source-paths ["src/tutorial" "src/shared"]
-                :compiler     {
-                               :main                 untangled-tutorial.tutorial
-                               :source-map-timestamp true
-                               :asset-path           "js/tutorial"
-                               :output-to            "resources/public/js/tutorial.js"
-                               :output-dir           "resources/public/js/tutorial"
-                               :recompile-dependents true
-                               :verbose              false
-                               :foreign-libs         [{:provides ["cljsjs.codemirror.addons.closebrackets"]
-                                                       :requires ["cljsjs.codemirror"]
-                                                       :file     "resources/public/codemirror/closebrackets-min.js"}
-                                                      {:provides ["cljsjs.codemirror.addons.matchbrackets"]
-                                                       :requires ["cljsjs.codemirror"]
-                                                       :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
-               {:id           "pages"
-                :source-paths ["src/tutorial" "src/pages" "src/shared"]
-                :compiler     {
-                               :main          core
-                               :devcards      true
-                               :asset-path    "js/pages"
-                               :output-to     "resources/public/js/pages.js"
-                               :output-dir    "resources/public/js/pages"
-                               :optimizations :advanced
-                               :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
-                                                :requires ["cljsjs.codemirror"]
-                                                :file     "resources/public/codemirror/closebrackets-min.js"}
-                                               {:provides ["cljsjs.codemirror.addons.matchbrackets"]
-                                                :requires ["cljsjs.codemirror"]
-                                                :file     "resources/public/codemirror/matchbrackets-min.js"}]}}]}
+  :cljsbuild {:builds [{:id           "test"
+                        :figwheel     true
+                        :source-paths ["src/shared" "test/client" "test/shared"]
+                        :compiler     {:main                 app.suite
+                                       :asset-path           "js/specs"
+                                       :output-to            "resources/public/js/specs.js"
+                                       :output-dir           "resources/public/js/specs"
+                                       :recompile-dependents true
+                                       }}
+                       {:id           "automated-tests"
+                        :source-paths ["test/shared" "src/shared"]
+                        :compiler     {:output-to     "resources/private/js/unit-tests.js"
+                                       :main          app.all-tests
+                                       :asset-path    "js"
+                                       :output-dir    "resources/private/js"
+                                       :optimizations :none
+                                       }}
+                       {:id           "tutorial"
+                        :figwheel     {:devcards true}
+                        :source-paths ["src/tutorial" "src/shared"]
+                        :compiler     {
+                                       :main                 untangled-tutorial.tutorial
+                                       :source-map-timestamp true
+                                       :asset-path           "js/tutorial"
+                                       :output-to            "resources/public/js/tutorial.js"
+                                       :output-dir           "resources/public/js/tutorial"
+                                       :recompile-dependents true
+                                       :verbose              false
+                                       :foreign-libs         [{:provides ["cljsjs.codemirror.addons.closebrackets"]
+                                                               :requires ["cljsjs.codemirror"]
+                                                               :file     "resources/public/codemirror/closebrackets-min.js"}
+                                                              {:provides ["cljsjs.codemirror.addons.matchbrackets"]
+                                                               :requires ["cljsjs.codemirror"]
+                                                               :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
+                       {:id           "pages"
+                        :source-paths ["src/tutorial" "src/pages" "src/shared"]
+                        :compiler     {
+                                       :main          core
+                                       :devcards      true
+                                       :asset-path    "js/pages"
+                                       :output-to     "resources/public/js/pages.js"
+                                       :output-dir    "resources/public/js/pages"
+                                       :optimizations :advanced
+                                       :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
+                                                        :requires ["cljsjs.codemirror"]
+                                                        :file     "resources/public/codemirror/closebrackets-min.js"}
+                                                       {:provides ["cljsjs.codemirror.addons.matchbrackets"]
+                                                        :requires ["cljsjs.codemirror"]
+                                                        :file     "resources/public/codemirror/matchbrackets-min.js"}]}}]}
 
   :profiles {
              :dev {
