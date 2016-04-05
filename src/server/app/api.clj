@@ -11,14 +11,7 @@
 
 ;; your query entry point (feel free to make multimethod). Standard Om fare here.
 (defn api-read [{:keys [ast query] :as env} dispatch-key params]
-  (Thread/sleep 10)
+  (Thread/sleep 1000)
   (case dispatch-key
-    :data-items {:value [{:db/id 1 :item/text "Data Item 1"}
-                         {:db/id 2 :item/text "Data Item 2"}]}
-    :data-item (let [{:keys [key]} ast]
-                 (if (= (second key) 1)
-                   {:value {:item/comments [{:id 1 :text "Hi there!" :author "Sam"}
-                                       {:id 2 :text "Hooray!" :author "Sally"}
-                                       {:id 3 :text "La de da!" :author "Mary"}]}}
-                   {:value {:item/comments [{:id 4 :text "Ooops!" :author "Sam"}]}}))
+    :something {:value 66}
     (timbre/error "Unrecognized query for " dispatch-key " : " query)))

@@ -91,7 +91,6 @@ The following builds are configured in figwheel:
 - `tutorial`: Devcards tutorial for the content listed above
 
 UNFINISHED:
-- `client`: A full-stack application (that you extend as part of the tutorial)
 - `test`: Tests for the client application (for you to see/extend)
 
 ### IntelliJ/Cursive

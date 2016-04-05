@@ -4,7 +4,7 @@ tutorial:
 	JVM_OPTS="-server -Dtutorial" ${LEIN_RUN}
 
 dev:
-	JVM_OPTS="-server -Dclient -Dtest -Dtutorial" ${LEIN_RUN}
+	JVM_OPTS="-server -Dtest -Dtutorial" ${LEIN_RUN}
 
 tests:
 	npm install
