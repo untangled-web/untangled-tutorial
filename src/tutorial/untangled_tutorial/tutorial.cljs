@@ -16,6 +16,7 @@
     untangled-tutorial.I-Building-A-Server
     untangled-tutorial.I-Building-A-Server-Exercises
     untangled-tutorial.J-Putting-It-Together
+    untangled-tutorial.K-Testing
     untangled-tutorial.Z-Glossary
     untangled-tutorial.Z-Query-Quoting
     [devtools.core :as devtools]))

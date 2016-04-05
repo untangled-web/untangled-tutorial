@@ -37,7 +37,7 @@
 ;;SERVER
 
 ;; needed so we don't scan cljs on refresh, which crashes namespace tools
-(set-refresh-dirs "dev/server" "src/server" "src/shared" "specs/server" "specs/shared")
+(set-refresh-dirs "dev/server" "src/server" "src/shared" "test/server" "test/shared")
 
 (defonce system (atom nil))
 
