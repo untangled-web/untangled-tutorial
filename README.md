@@ -55,7 +55,7 @@ Om library (on which much of the system is based):
         - Parsing/Processing Mutations
             - Tempids
     - Initial Application Loads
-        - `(load-collection)`/`(load-singleton)`
+        - `(load-data)`
         - Choosing a query
         - Eliding portions of the query (for later lazy loading)
         - Sending additional parameters to the server
@@ -81,6 +81,12 @@ Om library (on which much of the system is based):
         - Translating
         - Generating cljs translation files
         - Using modules to lazy-load translations
+- Untangled Spec
+    - Client/server specifications
+    - Running client tests in multiple browsers
+    - Running server tests with outline rendering
+    - Running tests from the command line (CI testing)
+    - Protocol testing: test queries and mutations as if there was a network
         
 # Running It
 
