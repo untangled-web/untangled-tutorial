@@ -1,6 +1,8 @@
 (ns app.tests-to-run
   (:require
-    app.sample-spec))
+    app.sample-spec
+    app.testing-tutorial-solutions-spec
+    app.testing-tutorial-spec))
 
 ;********************************************************************************
 ; IMPORTANT:

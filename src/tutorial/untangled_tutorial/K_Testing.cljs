@@ -1,12 +1,7 @@
 (ns untangled-tutorial.K-Testing
   (:require-macros [cljs.test :refer [is]]
                    [untangled-tutorial.tutmacros :refer [untangled-app]])
-  (:require [om.next :as om :refer-macros [defui]]
-            [om.dom :as dom]
-            [untangled.client.core :as uc]
-            [untangled.client.data-fetch :as df]
-            [untangled.client.mutations :as m]
-            [devcards.core :as dc :include-macros true :refer-macros [defcard defcard-doc dom-node]]
+  (:require [devcards.core :as dc :include-macros true :refer-macros [defcard defcard-doc dom-node]]
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
@@ -255,8 +250,214 @@
   will understand it and return a compatible result. Furthermore, it allows testing that the server response will
   result in your expected client app state.
 
-  TODO: Document this...
+  In general, we place these tests and setup in a single `cljc` file. Here are the basic tests you want to run:
+
+  - A test that joins your UI invocation with a real transaction. This proves your UI is saying what you expect.
+  - A test that checks the local mutation of the transaction.
+  - A test that checks that the mutation/query is transformed as expected (if at all)
+  - A test that the server transaction does proper tempid remapping (if tempids are used)
+  - A test that the server responds as expected (if it was a query)
+  - A test that the server does the right change to server-side state.
+
+  If all of these tests pass, then you have pretty strong proof that your overall dynamic interactions in the Untangled
+  application works (optimistic updates, queries, and full stack mutations). This covers a lot of your code in a way
+  that is easy to write and understand!
   ")
 
+(defcard-doc
+  "### Testing that the UI executes the transaction you expect
+
+  At the moment we're not doing direct UI testing. Instead we typically place any UI transact into a helper function
+  that calls `transact!`. You could render your React components to a dom fragment and trigger DOM events with mocking
+  in place, but in practice we find that the helper function approach is just less fuss, and it is good enough. You
+  don't end up with absolute proof things are hooked up right, but close enough.
+
+  So, let's say you've defined the following mutation:
+
+  ```
+  (defmethod m/mutate 'a-mutation [{:keys [state] :as env} k params]
+    {:action (fn []
+               (swap! state assoc-in [:tbl 4] {:id 4 :name \"Thing\"}))})
+  ```
+
+  and your UI uses this function to invoke it:
+
+  ```
+  (defn do-a-mutation [comp]
+    (om/transact! comp '[(a-mutation)]))
+  ```
+
+  #### Exercise 1: Write a test that verifies the UI helper requests the correct mutation
+
+  Make sure you're running the test build in figwheel (`-Dtest`) and have the specification open
+  [http://localhost:3449/test.html](http://localhost:3449/test.html).
+  You should see a grey area in the spec for the testing-tutorial-spec. This is because all assertions are commented out.
+
+  For sharing between client and server, we write our tests in a `.cljc` file. Open `testing_tutorial_spec.cljc`
+  and add a data structure for our expected results:
+
+  ```
+  (def do-a-mutation-protocol
+    { :ui-tx '[(a-mutation)] ; what the UI should send
+    })
+  ```
+
+  Your first test would be to prove that the UI will cause a given mutation to occur. Add this specification
+  to the test and verify it passes in the browser outline:
+
+  ```
+  (specification \"Doing a mutation\"
+    (behavior \"generates the correct ui transaction\"
+      (when-mocking
+        (om/transact! c tx) => (is (= tx (-> do-a-mutation-protocol :ui-tx)))
+
+        (do-a-mutation nil))))
+  ```
+
+  Now modify the helper function and see that the test fails. This seems like a trivial test, but it helps glue
+  together the proof that a mutation is tested all the way through the full stack. The next step **assumes** that the
+  UI will really generate the given `:ui-tx`, so if that were wrong the whole chain would be a false positive.
+
+  ### Testing that the UI Optimistic Update is correct
+
+  The next thing you'd like to do is ensure that the mutation does the correct optimistic update. Since this could
+  involve changing all sorts of things in a map at arbitrary nesting levels, and should technically run as
+  a partial integration test through the internal parser Untangled provides a nice helper function
+  that does all of this for you.
+
+  This is made possible by the fact that mutations are globally added to a single multimethod, and all of the plumbing
+  is built-in. Thus, the only thing you have to say is what should happen to the app state! We do this in the shared
+  data structure at the top of the CLJC file.
+
+  The data for an optimistic update is stored as a delta, formatted as follows:
+
+  ```
+  {:optimistic-delta { [key path to data] expected-value }
+   ...other test data... }
+  ```
+
+  So, for example to check that a map with `:id 1` has appeared in database table `:table` at key `1` you'd use:
+
+  ```
+  { :optimistic-delta { [:table 1 :id] 1 } }
+  ```
+
+  You can, of course, check the whole object (instead of just the ID), but often spot checking is sufficient.
+
+  To check the optimistic delta:
+
+  - Make **sure** you've required the namespace that defines the mutation under test! If you don't do this, your
+  mutation may not be installed, and will fail.
+  - Require `untangled.client.protocol-support` (perhaps as `ps`)
+  - Call `(ps/check-optimistic-delta protocol-def-map)` within a specification
+
+  The `check-optimistic-delta` uses the `ui-tx` entry to know what to attempt, and the mutations are already
+  installed. So, it makes up an app state (which can be based on `initial-ui-state`, if supplied).
+
+  #### Exercise 2: Check the optimistic update
+
+  1. Add two entries to an `:optimistic-delta` map in the `do-a-mutation-protocol` map.
+  2. Add a `initial-ui-state` to the protocol with: `{ :tbl { 4 {:id 4 :name \"Boo\"} } }` (pretend there was something in the table)
+  3. Run `check-optimistic-delta` within the cljs specification, passing it the protocol data.
+
+  The test should pass. Note that the checker automatically adds items to the specification about what it tested.
+
+  For sanity, comment out the body of the mutation function. The test should fail (you should see that the original
+  object is still there via the delta).
+
+  ### Testing how a mutation talks to the server
+
+  Mutations can trigger a remote mutation (and can modify the original UI transaction). For example, say
+  `(a-mutation)` is a perfect thing to say to the UI, but when sending it to the server you must add in
+  a parameter (e.g. reference ID, auth info, etc.).
+
+  #### Exercise 3: Check that a mutation is sent to the server
+
+  This test is again mostly automated for you. Simply call `(ps/check-server-tx do-a-mutation-protocol)` after
+  setting `:server-tx value` in your protocol.
+
+   NOTE: This test will fail at first.
+
+  - Add `:server-tx '[(a-mutation)]` to your protocol map
+  - Add a call to `check-server-tx` within your specification (again, it embeds its own behaviors/assertions)
+
+  Save, and you should see the test complain that nothing was supposed to go to the server. This is correct! Your
+  mutation does not specify a remote is to be used!
+
+  Add `:remote true` to your return value from `a-mutation`. The test should now pass.
+
+  #### Exercise 4: Mutations that modify the ui-tx
+
+  As you probably already know, it is possible to modify the mutation sent to the server by giving an AST
+  as the value of `:remote`. Add a parameter to the transaction by modifying the mutation to:
+
+  ```
+   (defmethod m/mutate 'a-mutation [{:keys [state ast] :as env} k params]
+     {:remote (assoc ast :params {:x 1})
+      :action (fn []
+                (swap! state assoc-in [:tbl 4] {:id 4 :name \"Thing\"}))})
+  ```
+
+  Your test should now be failing again. Change the `:server-tx` value in the protocol to fix this.
+
+  ### Testing the the server transaction does the correct thing on the server (Currently assumes Datomic)
+
+  Now we've verified that the UI will invoke the right mutation, the mutation will do the correct optimistic update,
+  the mutation will properly modify and generate a server transaction. We've reached the plumbing (network), and we'll
+  pretend that it works (since it is provided for you).
+
+  Once it is on the network, we can assume it reached the server (these are happy-path tests). Now you're interested
+  in proving that the server code works.
+
+  Untangled has you covered here too!
+
+  Only one function call is needed (with some setup): `check-response-to-client`. It supports checking:
+
+  - That the `:server-tx` runs without error
+  - That `:response` in the protocol data matches the real response of the `:server-tx`
+  - That Om tempids are remapped to real datomic IDs in the `:response`
+  - (optional) post-processing checks where you can examine the state of the database/system
+
+  The setup allows you to seed an in-memory test database for the transaction to run against.
+
+  TODO: Finish writing this section...
+
+  ### Testing that the server response is properly understood by the client
+
+  Now that you've proven the server part works, you'd shown that `:response` in the protocol data is correct. You
+  can now use that to verify the client will do the correct thing with it.
+
+  This is another cljs test, supported by `check-response-from-server`. It is very similar to the optimistic
+  update test, and simply requires these keys in the protocol data:
+
+  `response`: the exact data the server is supposed to send back to the client (which you proved with a server test)
+  `pre-response-state`: normalized app state prior to receiving `response`
+  `server-tx`: the transaction originally sent to the server, yielding `response` (which you proved was what the UI sends)
+  `merge-delta`: the delta between `pre-response-state` and its integration with `response`. Same format as optimistic-delta.
+
+  The call to `check-response-from-server` sets up the Untangled internals with the given `pre-response-state`, merges
+  the response with the normal merge mechanisms (which requires the `server-tx` for normalization), and then
+  verifies your `merge-delta`.
+
+  You can use this method to test simple query response normalization, but in that case you must use a `server-tx` that
+  comes from UI components (or normalization won't work).
+
+  TODO: Add exercise...
+
+  ### Handling temporary IDs in protocol tests
+
+  The protocol testing helpers completely understand temporary IDs, and make it really easy to use.
+
+  The basic features are:
+
+  - Anywhere you use a keyword namespaced to `:om.tempid/` (client or server side of the protocol), then
+  the protocol helpers will translate them to real Om tempids during the testing
+  (e.g. ensuring type checks for Om tempids will work in your real code).
+  - Anywhere you use a keyword namespaced to `:datomic.id/` (client or server side of the protocol)
+  the helpers will treat them correctly (e.g. on the server side it will join them up to seeded data correctly)
+
+  So, in all of the above tests you can use these namespaced keywords to simulate Om temporary and seeded data IDs.
+
+  ")
 
 
