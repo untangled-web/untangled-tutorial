@@ -12,7 +12,7 @@
   that Om does not (out of the box) provide:
 
   - Networking is provided
-  - All network requests (queries and mutations) are single-threaded. This allows you
+  - All network requests (queries and mutations) are processed sequentially. This allows you
   to reason about optimistic updates (Starting more than one at a time via async calls could
   lead to out-of-order execution, and impossible-to-reason-about recovery from errors).
   - You may provide fallbacks that indicate error-handling mutations to run on failures
@@ -39,10 +39,9 @@
   namespace these local-only attributes in the queries! (Additionally, there are local mutation
   helpers that can be used to update these without writing custom mutation code. See the section on Mutation)
 
-
   ### Data merge
 
-  When the server responds Untangled will merge them into the application client database. It overrides the built-in Om
+  When the server responds Untangled will merge the result into the application client database. It overrides the built-in Om
   shallow merge. Untangled's data merge has a number of extension that are useful for
   simple application reasoning:
 
@@ -83,7 +82,7 @@
 
   ### Query narrowing
 
-  The load functions allow you to elide parts of the query using `:without set`. This is useful when you have a query
+  The load functions allow you to elide parts of the query using a `:without` set. This is useful when you have a query
   that would load way more than you need right now. Using the `:without` parameter on a `load` function will cause it
   to elide the portions of the query (properties/joins) that use the given keywords. See the loading sections below.
 
@@ -95,7 +94,7 @@
 
   ### Server writes
 
-  TODO: Just like Om (:remote true); however adds in error handling triggering via tx fallbacks:
+  TODO: Just like Om (`:remote true` or `:remote ast`); however Untangled adds in error handling triggering via tx fallbacks:
 
   ```
   (om/transact! this '[(app/f) (tx/fallback {:action mutation-symbol :param 1})])

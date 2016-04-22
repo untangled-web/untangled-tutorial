@@ -17,7 +17,7 @@
 ;;FIGWHEEL
 
 (def figwheel-config
-  {:figwheel-options {:css-dirs ["resources/public/css"]}
+  {:figwheel-options {:css-dirs ["resources/public/css"] :server-port 3450}
    :build-ids        ["tutorial"]
    :all-builds       (figwheel-sidecar.repl/get-project-cljs-builds)})
 
