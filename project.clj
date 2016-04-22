@@ -7,7 +7,7 @@
                  [commons-codec "1.10"]
                  [lein-doo "0.1.6" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
-                 [navis/untangled-client "0.4.7"]
+                 [navis/untangled-client "0.4.8"]
                  [cljsjs/d3 "3.5.7-1"]
                  [navis/untangled-server "0.4.7"]
                  [navis/untangled-spec "0.3.6"]
