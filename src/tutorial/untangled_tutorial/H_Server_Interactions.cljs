@@ -169,7 +169,7 @@
   ROOT-centric query in your send function. Basically, you write a lot of plumbing. Server error handling is completely
   up to you in your send method.
 
-  In Untangled, initial load is an explicit step. You simply put calls to `load-collection` in your app start callback.
+  In Untangled, initial load is an explicit step. You simply put calls to `load-data` in your app start callback.
   State markers are put in place that allow you to then render the fact that you are loading data. Any number of separate
   server queries can be queued, and the queries themselves are used for normalization. Post-processing of the response
   is well-defined and trivial to access.
@@ -179,7 +179,7 @@
     :initial-state {}
     :started-callback
       (fn [app]
-        (df/load-collection :query [{:items (om/get-query CollectionComponent)}]
+        (df/load-data :query [{:items (om/get-query CollectionComponent)}]
                                      :without #{:comments}
                                      :post-mutation 'app/build-views)))
   ```
@@ -282,7 +282,7 @@
 
   #### Using `app/load` directly
 
-  TODO: See the helper functions `load-collection` and `load-field`. We might add more specific versions of `app/load`
+  TODO: See the helper functions `load-data` and `load-field`. We might add more specific versions of `app/load`
   that provide a clearer end-user API.
 
   ### Remote reads after a mutation
