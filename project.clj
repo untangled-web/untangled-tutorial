@@ -9,7 +9,7 @@
                  [org.clojure/tools.namespace "0.2.11"]
                  [navis/untangled-client "0.4.7"]
                  [cljsjs/d3 "3.5.7-1"]
-                 [navis/untangled-server "0.4.5"]
+                 [navis/untangled-server "0.4.7"]
                  [navis/untangled-spec "0.3.6"]
                  [navis/untangled-datomic "0.4.4"]]
 
