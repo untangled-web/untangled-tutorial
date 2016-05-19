@@ -1,7 +1,7 @@
 (defproject untangled-tutorial "0.1.0-SNAPSHOT"
   :description "A Tutorial for the Untangled Web Framework"
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.228"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.8.51"]
                  [org.omcljs/om "1.0.0-alpha32"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
                  [commons-codec "1.10"]
@@ -97,7 +97,7 @@
   :profiles {
              :dev {
                    :dependencies [[devcards "0.2.1-6" :exclusions [org.omcljs/om]]
-                                  [figwheel-sidecar "0.5.0-6" :exclusions [ring/ring-core commons-fileupload clj-time joda-time]]
+                                  [figwheel-sidecar "0.5.3-1" :exclusions [ring/ring-core commons-fileupload clj-time joda-time]]
                                   [binaryage/devtools "0.5.2" :exclusions [environ]]
                                   [cljsjs/codemirror "5.8.0-0"]]
                    :source-paths ["dev/server" "src/server" "src/shared"]
