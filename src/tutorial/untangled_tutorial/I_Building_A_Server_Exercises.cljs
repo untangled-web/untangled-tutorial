@@ -100,7 +100,7 @@
          is updated during loading, allowing you to place a global network indicator on your UI (you can
          query it anywhere via a link).
 
-         NOTE: `:ui/loading-data` was called `:app/loading-data` in 0.4.6 and below.
+         NOTE: `:ui/loading-data` was called `:untangled/load` in 0.4.6 and below.
 
          A fetch state is placed in the application database at the top-level key of the query. The query for
          `load-data` should be a single item or collection (e.g. a join or a property).

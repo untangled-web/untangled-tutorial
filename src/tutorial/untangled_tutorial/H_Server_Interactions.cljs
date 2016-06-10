@@ -125,7 +125,7 @@
 
   #### Reading results after a mutation
 
-  See notes on built-in call (app/load)
+  See notes on built-in call (untangled/load)
 
   ## Differences from stock Om (Next)
 
@@ -242,29 +242,29 @@
 
   Untangled has supplied all of the Om plumbing for you.
 
-  #### How reads work : `app/load`
+  #### How reads work : `untangled/load`
 
-  The helper functions described above simply trigger a built-in Untangled mutation called `app/load`, which you are
+  The helper functions described above simply trigger a built-in Untangled mutation called `untangled/load`, which you are
   allowed (and sometimes encouraged) to use directly. It is the Untangled method of doing follow-on reads after a remote
   mutation:
 
   ```
-  (om/transact! this '[(app/do-some-thing) (app/load {:query [:a]})])
+  (om/transact! this '[(app/do-some-thing) (untangled/load {:query [:a]})])
   ```
 
   The normal form of follow-on keywords (for re-rendering the UI) works fine, it will just never trigger remote
   reads.
 
-  The `app/load` mutation does a very simple thing: It puts a state marker in a well-known location in your app state
+  The `untangled/load` mutation does a very simple thing: It puts a state marker in a well-known location in your app state
   to indicate that you're wanting to load something (and returns `:remote true`). This causes the network
   plumbing to be triggered. The network plumbing only receives mutations that are marked remote, so it does the following:
 
-  - It looks for the special mutations `app/load` and `tx/fallback`. The latter is part of the unhappy path handling.
+  - It looks for the special mutations `untangled/load` and `tx/fallback`. The latter is part of the unhappy path handling.
      - For each load, it places a state marker in the app state at the target destination for the query data
      - All loads that are present are combined together into a single Om query
   - It looks for other mutations
   - It puts the 'other mutations' on the send queue
-  - It puts the derived query from the `app/loads` onto the send queue
+  - It puts the derived query from the `untangled/load` onto the send queue
 
   A separate \"thread\" (core async go block) watches the send queue, and sends things one-at-a-time (e.g. each entry
   in the queue is processed in a sequence, ensuring you can reason about things sequentially). The one-at-a-time
@@ -280,9 +280,9 @@
       - On error: updates the state marker to an error state (which re-renders allowing the UI to show error UI)
   - Repeats in an infinite loop
 
-  #### Using `app/load` directly
+  #### Using `untangled/load` directly
 
-  TODO: See the helper functions `load-data` and `load-field`. We might add more specific versions of `app/load`
+  TODO: See the helper functions `load-data` and `load-field`. We might add more specific versions of `untangled/load`
   that provide a clearer end-user API.
 
   ### Remote reads after a mutation
@@ -306,7 +306,7 @@
 
   ```
   ; Do mutation, then run a remote read of the given query, along with a post-mutation to alter app state when the load is complete
-  (om/transact! this `[(app/f) (app/load {:query ~(om/get-query Thing) :post-mutation after-load-sym}])
+  (om/transact! this `[(app/f) (untangled/load {:query ~(om/get-query Thing) :post-mutation after-load-sym}])
   ```
 
   Of course, you can (and *should) use syntax quoting to embed a query from (om/get-query) so that normalization works,
