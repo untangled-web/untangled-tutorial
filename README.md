@@ -137,7 +137,7 @@ JVM_OPTS="-Dtutorial" lein run -m clojure.main script/figwheel.clj
 Then browse to the following URL:
 
 ```
-http://localhost:3449
+http://localhost:3450
 ```
 
 ### Figwheel notes
