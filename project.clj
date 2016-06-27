@@ -2,16 +2,16 @@
   :description "A Tutorial for the Untangled Web Framework"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.8.51"]
-                 [org.omcljs/om "1.0.0-alpha32"]
-                 [com.datomic/datomic-free "0.9.5350" :exclusions [org.clojure/tools.cli]]
+                 [org.omcljs/om "1.0.0-alpha37"]
+                 [com.datomic/datomic-free "0.9.5372" :exclusions [com.google.guava/guava org.clojure/tools.cli]]
                  [commons-codec "1.10"]
                  [lein-doo "0.1.6" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
-                 [navis/untangled-client "0.4.8"]
+                 [navis/untangled-client "0.5.3"]
                  [cljsjs/d3 "3.5.7-1"]
-                 [navis/untangled-server "0.4.7"]
-                 [navis/untangled-spec "0.3.6"]
-                 [navis/untangled-datomic "0.4.4"]]
+                 [navis/untangled-server "0.6.0" :exclusions [bidi prismatic/schema]]
+                 [navis/untangled-spec "0.3.8" :scope "test" :exclusions [ring/ring-core]]
+                 [navis/untangled-datomic "0.4.9"]]
 
   ; server source paths
   :source-paths ["src/server" "src/shared" "test/server" "test/shared" "src/tutorial"]
@@ -98,7 +98,7 @@
              :dev {
                    :dependencies [[devcards "0.2.1-6" :exclusions [org.omcljs/om]]
                                   [figwheel-sidecar "0.5.3-1" :exclusions [ring/ring-core commons-fileupload clj-time joda-time]]
-                                  [binaryage/devtools "0.5.2" :exclusions [environ]]
+                                  [binaryage/devtools "0.5.2"]
                                   [cljsjs/codemirror "5.8.0-0"]]
                    :source-paths ["dev/server" "src/server" "src/shared"]
                    :repl-options {:init-ns user
