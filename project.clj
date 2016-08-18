@@ -1,5 +1,7 @@
 (defproject untangled-tutorial "0.1.0-SNAPSHOT"
   :description "A Tutorial for the Untangled Web Framework"
+  :license {:name "MIT"
+            :url  "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.8.51"]
                  [org.omcljs/om "1.0.0-alpha37"]
