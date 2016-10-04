@@ -105,10 +105,12 @@
              :dev {
                    :dependencies [[devcards "0.2.1-7"]
                                   [figwheel-sidecar "0.5.7" :exclusions [ring/ring-core org.clojure/tools.analyzer.jvm org.clojure/tools.analyzer org.clojure/core.memoize org.clojure/data.priority-map]]
+                                  [com.cemerick/piggieback "0.2.1"]
                                   [binaryage/devtools "0.6.1"]
                                   [cljsjs/codemirror "5.8.0-0"]]
                    :source-paths ["dev/server" "src/server" "src/shared"]
                    :repl-options {:init-ns user
+                                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
                                   :port    7001}
                    }
              }
