@@ -7,13 +7,28 @@
 (defcard-doc
   "# Introduction
 
-  This tutorial will walk you through the various parts of Untangled (alpha).
+  Welcome to Untangled!
+
+  This tutorial will walk you through the various parts of Untangled in a way that should then allow you to easily develop
+  your own full-stack web applications!
 
   Note that you can navigate to the table of contents any time using the `devcards` link at the top of the page.
 
-  **WORK IN PROGRESS**: We are working hard to round out documentation, code samples, and many
-  other things while also developing production software. Please be patient with us and feel
-  free to suggest (or make) contributions.
+  ## What is Untangled?
+
+  Untangled is a set of libraries that together comprise a full-stack, feature-complete web development toolkit.
+
+  ## How is Untangled related to Om (Next)?
+
+  The Untangled Client and Server libraries serve as an implementation of the network layer, plumbing, and default
+  application database format. This means that the vast majority of the important and ground-breaking features of
+  Om Next are simply augmented to make them much simpler and easier to get started with.
+
+  Think of the base Untangled libraries as the glue that ties the overall full-stack story together *for* Om Next.
+
+  Other features (such as the i18n integration, support viewer, datomic helpers, websockets, etc.) are additional
+  libraries that further leverage the Untangled additions to give you an even more complete stack on which to develop
+  your next killer app!
 
   ## About this tutorial
 
