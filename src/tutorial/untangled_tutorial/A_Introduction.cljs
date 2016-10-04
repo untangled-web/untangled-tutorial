@@ -95,17 +95,13 @@
   (dom/div #js {:onClick (fn [evt] ...) })
   ```
 
-  but in many of the examples you'll see this instead:
+  in some of the examples you'll see this instead:
 
   ```
   (dom/div (clj->js {:onClick (fn [evt] ...) }))
   ```
 
-  Devcards has a really cool feature where you can pull live source into the documentation. Unfortunately, the
-  mechanism it uses to do this (the `cljs.repl/source` function) cannot currently handle reader tags. So, in
-  some examples we'll be using the `cljs->js` function instead to make sure the docs and source stay in sync. For
-  a tutorial, the latter is more important than the former, and once the source pulling is fixed it will be easy to
-  fix the source and have all of the documentation automatically update.
+  The two are equivalent. The latter will do a recursive transform, which can be handy.
 
   [Let's start with the UI.](#!/untangled_tutorial.B_UI)
 

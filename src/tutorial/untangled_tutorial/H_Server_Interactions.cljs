@@ -224,7 +224,7 @@
      Object
      (render [this]
         ...
-        (dom/button (clj->js { :onClick #(df/load-field this :comments) }) \"Load comments\")
+        (dom/button #js { :onClick #(df/load-field this :comments) } \"Load comments\")
         ...)
   ```
 

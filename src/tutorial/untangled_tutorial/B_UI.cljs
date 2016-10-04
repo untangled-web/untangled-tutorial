@@ -123,8 +123,8 @@
   (render [this]
     (let [{:keys [people number]} (om/props this)]
       (dom/div nil
-        (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
-        (people-list people)))))
+               (dom/span nil (str "My lucky number is " number " and I have the following friends:"))
+               (people-list people)))))
 
 (def root (om/factory Root))
 
@@ -177,12 +177,11 @@
     (let [{:keys [people number b]} (om/props this)
           {:keys [incHandler boolHandler]} (om/get-computed this)]
       (dom/div nil
-        ; code pprinter cannot deal with #js on rendering source. Using clj->js instead
-        (dom/button (clj->js {:onClick #(boolHandler)}) "Toggle Luck")
-        (dom/button (clj->js {:onClick #(incHandler)}) "Increment Number")
-        (dom/span nil (str "My " (if b "" "un") "lucky number is " number
-                        " and I have the following friends:"))
-        (people-list people)))))
+               (dom/button #js {:onClick #(boolHandler)} "Toggle Luck")
+               (dom/button #js {:onClick #(incHandler)} "Increment Number")
+               (dom/span nil (str "My " (if b "" "un") "lucky number is " number
+                                  " and I have the following friends:"))
+               (people-list people)))))
 
 (def root-computed (om/factory Root-computed))
 
@@ -204,10 +203,6 @@
 
   For your Om UI to function properly you must attach computed properties to props via the helper function `om/computed`.
   The child can look for these computed properties using `get-computed`.
-
-  (Remember about the use of `clj->js`...devcards can't currently render the source of something with reader tags in it.
-  You'd normally write `#js { :onClick ...}`).
-
   "
 
   (dc/mkdn-pprint-source Root-computed)
@@ -221,38 +216,38 @@
   ")
 
 (defcard passing-callbacks-via-computed
-  (fn [data-atom-from-devcards _]
-    (let [prop-data @data-atom-from-devcards
-          sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
-                         :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
-          ]
-      (root-computed (om/computed prop-data sideband-data))))
-  {:number 42 :people [{:name "Sally"}] :b false}
-  {:inspect-data true
-   :history      true})
+         (fn [data-atom-from-devcards _]
+           (let [prop-data @data-atom-from-devcards
+                 sideband-data {:incHandler  (fn [] (swap! data-atom-from-devcards update-in [:number] inc))
+                                :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
+                 ]
+             (root-computed (om/computed prop-data sideband-data))))
+         {:number 42 :people [{:name "Sally"}] :b false}
+         {:inspect-data true
+          :history      true})
 
 (defn render-squares [component props]
   (let [svg (-> js/d3 (.select (dom/node component)))
         data (clj->js (:squares props))
         selection (-> svg
-                    (.selectAll "rect")
-                    (.data data (fn [d] (.-id d))))]
+                      (.selectAll "rect")
+                      (.data data (fn [d] (.-id d))))]
     (-> selection
-      .enter
-      (.append "rect")
-      (.style "fill" (fn [d] (.-color d)))
-      (.attr "x" "0")
-      (.attr "y" "0")
-      .transition
-      (.attr "x" (fn [d] (.-x d)))
-      (.attr "y" (fn [d] (.-y d)))
-      (.attr "width" (fn [d] (.-size d)))
-      (.attr "height" (fn [d] (.-size d))))
+        .enter
+        (.append "rect")
+        (.style "fill" (fn [d] (.-color d)))
+        (.attr "x" "0")
+        (.attr "y" "0")
+        .transition
+        (.attr "x" (fn [d] (.-x d)))
+        (.attr "y" (fn [d] (.-y d)))
+        (.attr "width" (fn [d] (.-size d)))
+        (.attr "height" (fn [d] (.-size d))))
     (-> selection
-      .exit
-      .transition
-      (.style "opacity" "0")
-      .remove)
+        .exit
+        .transition
+        (.style "opacity" "0")
+        .remove)
     false))
 
 (defui D3Thing
@@ -261,9 +256,9 @@
   (shouldComponentUpdate [this next-props next-state] false)
   (componentWillReceiveProps [this props] (render-squares this props))
   (render [this]
-    (dom/svg (clj->js {:style   {:backgroundColor "rgb(240,240,240)"}
-                       :width   200 :height 200
-                       :viewBox "0 0 1000 1000"}))))
+    (dom/svg #js {:style   #js {:backgroundColor "rgb(240,240,240)"}
+                  :width   200 :height 200
+                  :viewBox "0 0 1000 1000"})))
 
 (def d3-thing (om/factory D3Thing))
 
@@ -327,15 +322,15 @@
 (defn add-square [state] (swap! state update :squares conj (random-square)))
 
 (defcard sample-d3-component
-  (fn [state-atom _]
-    (dom/div nil
-      (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
-      (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
-      (dom/br nil)
-      (dom/br nil)
-      (d3-thing @state-atom)))
-  {:squares []}
-  {:inspect-data true})
+         (fn [state-atom _]
+           (dom/div nil
+                    (dom/button #js {:onClick #(add-square state-atom)} "Add Random Square")
+                    (dom/button #js {:onClick #(reset! state-atom {:squares []})} "Clear")
+                    (dom/br nil)
+                    (dom/br nil)
+                    (d3-thing @state-atom)))
+         {:squares []}
+         {:inspect-data true})
 
 (defcard-doc
   "
@@ -349,7 +344,7 @@
 
   ## Important notes and further reading
 
-  - Remember to use `#js` (shown as `clj->js` in many examples) to transform attribute maps for passing to DOM elements.
+  - Remember to use `#js` to transform attribute maps for passing to DOM elements.
   - Use *cljs* maps as input to your own Elements: `(my-ui-thing {:a 1})` and `(dom/div #js { :data-x 1 } ...)`.
   - Extract properties with `om/props`. This is the same for stateful (with queries) or stateless components.
   - Add parent-generated things (like callbacks) using `om/computed` and pull them from the component with
