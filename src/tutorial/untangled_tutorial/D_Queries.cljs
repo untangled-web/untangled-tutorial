@@ -10,6 +10,12 @@
             [devcards.util.edn-renderer :refer [html-edn]]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: pointers from ref guide
+; TODO: Move query parameter stuff to server-side.
+; TODO: Give some motivation about not using q params on client UI, with pointer to later section about post-mutations that solve
+; the same problem.
+; TODO: Mention that parameters on queries ARE useable and useful when talking to the server (mutations that modify the remote request).
+
 (defcard-doc
   "
   # Queries

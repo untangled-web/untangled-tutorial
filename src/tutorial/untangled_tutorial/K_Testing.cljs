@@ -5,6 +5,12 @@
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
+; TODO: Exercises. The project is set up with tests and such...have them augment.
+; Exercises should include:
+; - Showing them how to make inlined/protocol stuff mockable (e.g. wrap calls in function)
+; - testing unhappy paths/exceptions
+; - Use of all arrow types
+
 (defcard-doc
   "# Testing
 

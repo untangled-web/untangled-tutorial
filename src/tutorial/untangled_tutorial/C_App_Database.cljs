@@ -6,6 +6,11 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [cljs.reader :as r]))
 
+; TODO: A graphic of the linkage within the example database to show
+; linkage graphically.
+; TODO: Mention that initial database is easily taken care of by InitialAppState which is covered later
+; TODO: Pointer from ref guide, and improve examples so that a graphic is "complete"
+
 (defcard-doc
   "
   # App database

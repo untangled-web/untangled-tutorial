@@ -6,6 +6,11 @@
             cljsjs.d3
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: Split D3 out to advanced UI
+; TODO: Add "using React from Untangled" to advanced UI. Use victory
+; M###-Advanced-UI  with inc of 10 for naming
+; TODO: Make our links to the "next section" auto-scroll back to top
+
 (defui Widget
   Object
   (render [this]

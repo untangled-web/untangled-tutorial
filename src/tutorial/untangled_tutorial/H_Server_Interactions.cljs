@@ -4,6 +4,15 @@
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: Lots of TODO items below
+; TODO: Modifying a remote AST (e.g. add parameters to query)
+; TODO: WHY you don't return a value from a mutation (ask Ethan for my "blog" post on this)
+; TODO: Explain Om's HATEOS (keyword listing in :keys)
+; see: https://github.com/omcljs/om/wiki/Quick-Start-%28om.next%29
+; TODO: Error handling (UI and server), exceptions, fallbacks, status codes
+; Remember that global-error-handler is a function of the network impl
+; TODO: (advanced) cookies/headers (needs extension to U.Server see issue #13)
+
 (defcard-doc
   "
   # Server interaction

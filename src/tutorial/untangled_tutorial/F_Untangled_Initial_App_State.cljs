@@ -7,6 +7,8 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [cljs.reader :as r]))
 
+; TODO: Exercise repeat from last section, but made easier by IAS protocol
+
 (defui Child
   static uc/InitialAppState
   (initial-state [this params] {:id 1 :x 1})

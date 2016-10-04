@@ -4,6 +4,11 @@
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: These need to be a LOT better, but cannot rely on knowledge of
+; client yet.
+
+; NOTE: The TODO items below are notes to the person DOING the exercies!
+
 (declare om-person)
 
 (defui Person

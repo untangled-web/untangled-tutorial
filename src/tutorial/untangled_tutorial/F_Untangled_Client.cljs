@@ -3,6 +3,15 @@
   [om.dom :as dom]
   [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: Need exercises.
+; See G-exercises for example of using tutmacros untangled-app to embed app in card
+; MIGHT be nice to modify or create a way for them to be the creator
+; of the app itself.
+; TODO: In these exercises, probably better to have them make an HTML file, a namespace with make/mount, etc.
+; See DIV in index.html (have it render over top of tutorial)
+; NOTE: in exercises you'll have them MAKE (by hand) initial app state
+; TODO: Note diff of atom vs map on I.App State (auto-norm). Exercise?
+
 (defcard-doc
   "
   # Building an Untangled client

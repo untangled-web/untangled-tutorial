@@ -10,6 +10,8 @@
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
+; TODO: Need more exercises.
+
 (defcard-doc
   "# Server exercises
 

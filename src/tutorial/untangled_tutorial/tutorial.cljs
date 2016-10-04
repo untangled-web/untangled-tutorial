@@ -1,6 +1,7 @@
 (ns untangled-tutorial.tutorial
   (:require
     untangled-tutorial.A-Introduction
+    untangled-tutorial.A-Quick-Tour
     untangled-tutorial.B-UI
     untangled-tutorial.B-UI-Exercises
     untangled-tutorial.C-App-Database

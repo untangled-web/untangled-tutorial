@@ -4,6 +4,13 @@
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: integrate-ident! should be covered, and should be suggested as part
+; of an exercise.
+; ADVANCED:
+; TODO: Talk about integrating external data (e.g. setTimeout, XRH from Yahoo, etc.)
+; TODO: might be useful to talk about tree->db, merge!, and just merge-state! (advanced)
+; really important to cover WHY you NEED a query AND data to do this
+
 (defcard-doc
   "
   # Mutation

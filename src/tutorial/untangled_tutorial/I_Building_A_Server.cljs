@@ -11,6 +11,12 @@
             [om.next.impl.parser :as p]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: (advanced?) config, config files, command line config, env vars...should this just be a ref guide ptr?
+; TODO: make external refs (e.g. to ss component) links
+; TODO: Extra Routes (bidi) and hooks (using component to add hooks vs. using ring wrappers *directly* in a handler function (e.g. bidi route))
+; TODO: (advanced?) Client headers? Cookies? related stuff to security.
+
+
 (defcard-doc
   "
   # Building the server

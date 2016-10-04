@@ -6,6 +6,9 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc deftest]]
             [cljs.reader :as r]))
 
+; TODO: MUCH better instructions. More hand-holding. The primary goal
+; is understanding the graph and tables concepts
+
 (defcard-doc
   "
   # App database exercises
