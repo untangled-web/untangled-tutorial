@@ -61,7 +61,7 @@
                                        :recompile-dependents true
                                        }}
                        {:id           "automated-tests"
-                        :source-paths ["test/shared" "src/shared"]
+                        :source-paths ["test/shared" "test/client" "src/shared"]
                         :compiler     {:output-to     "resources/private/js/unit-tests.js"
                                        :main          app.all-tests
                                        :asset-path    "js"
