@@ -97,7 +97,8 @@
 ;; Simulated Server
 
 ; Servers could keep state in RAM
-(defonce server-state (atom {:counters {1 {:counter/id 1 :counter/n 44}
+(defonce server-state (atom {:THIS_IS_SERVER_STATE true
+                             :counters {1 {:counter/id 1 :counter/n 44}
                                         2 {:counter/id 2 :counter/n 23}
                                         3 {:counter/id 3 :counter/n 99}}}))
 
@@ -117,7 +118,9 @@
   (case k
     ; When asked to increment a counter on the server, do so by updating in-memory atom database
     'counter/inc (let [{:keys [id]} p]
-                   {:action (fn [] (swap! server-state update-in [:counters id :counter/n] inc))})
+                   {:action (fn []
+                              (swap! server-state update-in [:counters id :counter/n] inc)
+                              nil)})
     nil))
 
 ; Om Next query parser. Calls read/write handlers with keywords from the query
@@ -487,14 +490,19 @@
          setTimeout to fake network latency). If you reload this page and jump to the bottom, you'll see the initial
          server loading. (If you see an error related to mounting a DOM node, try reloading the page). You can
          see the mocked server processing take place in a delayed fashion in the Javascript Console of your
-         browser."
+         browser.
+
+         NOTE: The map shown at the bottom is our simulated server state. Note how, if you click rapidly on
+         increment, that the server state lags behind (because of our simulated delay). You can see how the UI
+         remains responsive even though the server is lagging."
          (untangled-app Root
                         :started-callback (fn [{:keys [reconciler] :as app}]
                                             (log/info "Application (re)started")
                                             (df/load-data reconciler [{:all-counters (om/get-query Counter)}]
                                                           :post-mutation 'add-counters-to-panel))
                         :networking (map->MockNetwork {}))
-         {})
+         server-state
+         {:inspect-data true})
 
 (defcard-doc
   "### The Grand Total
