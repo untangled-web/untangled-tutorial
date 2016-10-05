@@ -8,11 +8,6 @@
             [untangled.client.logging :as log]
             [untangled.client.data-fetch :as df]))
 
-; ADVANCED:
-; TODO: Talk about integrating external data (e.g. setTimeout, XRH from Yahoo, etc.)
-; TODO: might be useful to talk about tree->db, merge!, and just merge-state! (advanced)
-; really important to cover WHY you NEED a query AND data to do this
-
 (defui SubQuery
   static om/Ident
   (ident [this props] [:sub/by-id (:id props)])
@@ -56,6 +51,11 @@
   various bits.
 
   The function also requires a query in order to do normalization (split the tree into tables).
+
+  IMPORTANT: The general interaction with the world requires integration of external data (often in a tree format) with
+  your app database (normalized graph of maps/vectors). As a result, you almost always want an Om-managed query when
+  integrating data, so that the result is normalized. This is also why mutations don't have return values: there is
+  no query to use to merge such a result.
 
   ### Creating Components *Just* For Their Queries
 

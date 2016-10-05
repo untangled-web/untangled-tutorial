@@ -5,7 +5,6 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [untangled.client.core :as uc]))
 
-
 (defcard-doc
   "
   # Mutation
@@ -239,6 +238,21 @@
   the power of data structure tools in cljs, it is simple enough to scan the database for idents, and then remove
   anything from the tables that are not in this collected set of idents.
 
+  ## Returning a Value From a Mutation
+
+  We included this section because it is a common question. The answer is \"you can't\". On the surface this seems like
+  a problem, but if you think about the overall model it becomes quite evident:
+
+  - Which mutation return value do you get (there could be a local AND remote)?
+  - What should the mutation return? The server version has no idea what is on your UI, so how can it decide what updated
+  facts you need?
+  - Where would the return value go? Transact can be reasoned about asynchronously, but you're in browser land. It isn't.
+  You cannot capture it synchronously. We could give you callback madness, but we're here to free you from that. Finally,
+  there is no query, and as you saw in many other places, we cannot merge data to the database correctly without one!
+
+  See [Advanced Mutation](#!/untangled_tutorial.M30_Advanced_Mutation), and the [Reference Guide](http://untangled-web.github.io/untangled/reference/reference.html#_implementing_server_mutations)
+  on server mutations.
+
   ## Details on refreshing components after mutation
 
   After doing a mutation, you can trigger re-renders by listing query bits after the mutation. Any keywords you list
@@ -257,8 +271,8 @@
   This mechanism works as follows (basically):
 
   Any keywords mentioned in the transaction are used to look up components (via the internal indexer). Those
-  components are used to transform the keywords requested into queries to run against the local app state. Those
-  queries are run, the results are focused to the target components, and those components are re-rendered. Of course,
+  components are used to transform the keywords requested into full queries to run against the local app state. Those
+  queries are run, the results are focused to the target components, and those components are re-rendered. Of course
   if the state hasn't changed, then React will optimize away any actual DOM change.
 
   ## Untangled built-in mutations

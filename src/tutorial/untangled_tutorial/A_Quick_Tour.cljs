@@ -532,6 +532,6 @@
 
   You can, of course, play with the source code of this example in the devcards.
 
-  We certainly hope you will continue reading into the deatils of all of these features. You should start with
+  We certainly hope you will continue reading into the deatils of all of these features. You should start with the
   [next chapter](#!/untangled_tutorial.B_UI) on UI.
   ")

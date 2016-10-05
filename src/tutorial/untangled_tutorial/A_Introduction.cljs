@@ -103,6 +103,6 @@
 
   The two are equivalent. The latter will do a recursive transform, which can be handy.
 
-  [Let's start with the UI.](#!/untangled_tutorial.B_UI)
+  [Let's start with a Quick Tour.](#!/untangled_tutorial.A_Quick_Tour)
 
   ")
