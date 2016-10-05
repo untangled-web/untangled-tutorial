@@ -160,11 +160,11 @@
   - The render refresh story is mostly automatic, and where it isn't, it
   is completely abstracted from the UI structure to ease developer reasoning.
 
-  If you're coming from Om Next, realize that Untangled is *not* a competing project. Untangled is a set of
+  If you're coming from Om Next, you should know that Untangled is *not* a competing project. Untangled is a set of
   thin libraries that
-  provide default implementations of all of the artifacts you'd normally have to write to make an Om Next application. In
-  many cases Untangled is required to 'make a call' about how to do something. When it does, our documentation tries to
-  discuss the relative merits and costs.
+  provide default implementations of all of the artifacts you'd normally have to write to make a full-stack
+   Om Next application. In many cases Untangled is required to 'make a call' about how to do something.
+   When it does, our documentation tries to discuss the relative merits and costs.
 
   The name 'Untangled' is *not* meant to be a commentary on Om Next, but instead on the general state of web
   development circa 2016. Om Next and Untangled are two layers of a solution that makes things
@@ -172,8 +172,8 @@
 
   ## Om Next Components can use Stock React components
 
-  The first major strength is that Om Next integrates with stock React components. So, if you already
-  understand React you already have a head start. If you know nothing of React, you should eventually
+  The first major strength is that Om Next (and therefore Untangled) integrates with stock React components. So, if you already
+  understand React then you already have a head start. If you know nothing of React, you should eventually
   read more about it. For now, we'll cover everything you need to know.
 
   ## The Rendering Model
@@ -200,10 +200,10 @@
   this database, and can be queried to create arbitrary UI trees for display.
 
   A given item in this database can be shown in as many places on the UI as makes sense. The fact that the database
-  is *normalized* means that changing the item once in the database will result in all displayed versions being
-  refreshed easily.
+  is *normalized* means that changing the item once in the database will result in being able to refresh all displayed versions
+  easily.
 
-  The model manipulation thus maintains the desired local reasoning model (to entries in database tables). You write
+  The model manipulation thus maintains the desired local reasoning model (of entries in database tables). You write
   functions that know how to manipulate specific 'kinds' of things in the database, and think nothing of the UI.
 
   For example, say we have a counter that we'd like to represent with this data structure:
@@ -218,9 +218,9 @@
   (dc/mkdn-pprint-source increment-counter)
   "
 
-  and think about that counter as a complete abstract thing (and write clojure specs for it, etc.).
+  and think about that counter as a complete abstract thing (and write tests and clojure specs for it, etc.).
 
-  The Untangled database table for counters looks something like this:
+  The Untangled database table for counters then looks something like this:
 
   ```
   { :counter/by-id { 1 { :counter/id 1 :counter/n 1 }
@@ -228,37 +228,37 @@
                      ...}}
   ```
 
-  A table is just an entry in the database that, by convention, includes a namespace and name to indicate the kind of
-  thing in the table and how it is indexed. The value of the table is just a map whose keys are the IDs, and values
-  are the entries.
+  A table is just an entry in the database (map) that, by convention, is keyed with a keyword whose  namespace indicates
+  the kind of thing in the table, and whose name indicates how it is indexed. The k-v pairs in the table are the keys
+  (of the implied index) and the values of the actual data.
 
   The general app state is held in a top-level atom. So, updating any object in the database generally takes the
   form:
 
   ```
-  (swap! state update-in [:table/key id] operation)
+  (swap! app-state-atom update-in [:table/key id] operation)
   ```
 
   or in our example case:
 
   ```
-  (swap! state update-in [:counter/by-id 1] increment-counter)
+  (swap! app-state-atom update-in [:counter/by-id 1] increment-counter)
   ```
 
-  NOTE: You still need to know *where* to put this code.
+  NOTE: You still need to know *where* to put this code, and how to find/access the `app-state-atom`.
 
   ## Mutations as Abstract Transactions
 
   In Untangled, you don't do model twiddling on the UI. There is a clear separation of concerns for several good
   reasons:
 
-  - It generally pays not to mix your low-level logic with UI.
+  - It generally pays not to mix your low-level logic with the UI.
   - The concept of an abstract mutation can isolate the UI from networking, server interactions, and async thinking.
   - Abstract mutations give nice auditing and comprehension on both client and server.
 
-  The main UI entry point to affecting a change is the `om/transact!` function. This function lets you submit
-  an abstract sequence of modifications that you'd like to make, and isolates the UI author from the details of
-  implementing that model/remote behavior.
+  The main UI entry point for affecting a change is the `om/transact!` function. This function lets you submit
+  an abstract sequence of operations that you'd like to accomplish, and isolates the UI author from the details of
+  implementing that behavior (and of even having to know things like 'will that happen locally or on the server?').
 
   The concrete artifacts you'll see in Untangled code are the invocation of the `transact!`, and the implementation
   of the operations listed in the transaction:
@@ -267,9 +267,12 @@
   (om/transact! this `[(counter/increment {:id ~id})])
   ```
 
-  in the above transaction, we must use Clojure syntax quoting so that we can list an abstract muation (looks like
+  in the above transaction, we must use Clojure syntax quoting so that we can list an abstract muation (which looks like
   a function call, but is not) and parameters that themselves are derived from the environment (in this case
-  an id).
+  an id). If you're not a Clojure(script) programmer, we understand that the above expression looks a little scary. The
+  '`' means 'treat the following thing literally', and the '~' means 'don't treat this thing literally'. It's a way
+  of keeping the compiler from treating the increment as a function while still being able to embed `id` from the local
+  execution environment.
 
   The concrete implementation of the mutation on the model side looks like this:
 
@@ -281,14 +284,16 @@
   ```
 
   This looks a little hairy at first until you notice the primary guts are just what we talked about earlier in
-  the model manipulation: it's just an update-in.
+  the model manipulation: it's just an `update-in`.
 
   The wrapping is a pretty consistent pattern: the app state and parameters are passed into a multimethod, which is
   dispatched on the symbol mentioned in the `transact!`. The basics are:
 
-  - You key on a symbol instead of writing a function with that symbol name
+  - You key on a symbol instead of writing a function with that symbol name (this is what gives an abstraction that
+  is already 'network ready')
   - You return a map
-  - The `:action` key indicates a function to run as an optimistic update to the browser database
+  - The `:action` key of that map specifies a function to run to accomplish the optimistic update to the browser database. The
+  use of a thunk (function) here is what helps isolate asynchronous internals and networking from synchronous abstract reasoning.
 
   When you want to interact with a server, you need merely change it to:
 
@@ -305,11 +310,12 @@
   At first this seems like a bit of overkill on the boilerplate until you realize that there are a number of things
   being handled here:
 
-  - Local optimistic updates
-  - Automatically plumbed server interactions
-  - Use of the same symbol for the operation on the client and server
-  - Operations in the UI and on the server are identical in appearance
-  - Consistent implementation of model interactions on the client and server
+  - Sychronous *reasoning* about most aspects of the application.
+  - Local optimistic (immediate) updates (through `:action`)
+  - Automatically plumbed server interactions (triggered through `:remote` at transaction time)
+  - Use of the same abstract symbol for the operation on the client and server.
+  - Operations in the UI and on the server are identical in appearance.
+  - Consistent implementation pattern for model manipulations on the client and server.
   - The operations 'on the wire' read like abstract function calls, and lead to easy auditing and reasoning, or
   even easy-to-implement CQRS architectures.
 
@@ -334,19 +340,20 @@
   could have labels, owners, purposes, etc.
   - Ident : Represents the table/ID of the database data for the component. This is a function that, given an example
   of a counter, will return a vector that has two elements: the table and the ID of the entry. This is used
-  to assist in auto-normalization of the browser database.
+  to assist in auto-normalization of the browser database, and also with UI refreshes of components that display the
+  same data.
   - Object/render : This is the (pure) function that outputs what a Counter should look like on the DOM
 
   The incoming data from the database comes in via `om/props`, and things like callbacks come in via a mechanism known
   as the 'computed' data (e.g. stuff that isn't in the database, but is generated by the UI, such as callbacks).
 
-  A `defui` generates a React Component. In order to render an instance of a Counter, we must make an element
+  A `defui` generates a React Component (class). In order to render an instance of a Counter, we must make an element
   factory:
   "
   (dc/mkdn-pprint-source ui-counter)
   "
   If more than one of something can appear in the UI as siblings, you must specify a `:keyfn` that helps React
-  distinguish the DOM elements. You can ignore that for now.
+  distinguish the DOM elements.
 
   The most important point is that you can reason about `Counter` in a totally local way.
 
@@ -354,35 +361,38 @@
 
   Lets assume we want to display some arbitrary number of counters together in a panel. We can encode that (and the
   element factory) as:
+
   "
   (dc/mkdn-pprint-source CounterPanel)
   (dc/mkdn-pprint-source ui-counter-panel)
   "
+
   Note the mirroring again between the initial state and the query. The initial state provides an initial model
-  of what should be in the database, and the query indicates which bits of that state are required for the
-  current component.
+  of what should be in the database *for the component at hand*, and the query indicates which bits of that state are
+  required for that same local component.
 
   In this case the query contains a map, which is the query syntax for a JOIN. You can read this query as
   'Query for :counters, which is a JOIN on Counter'. Note that since initial state is setting up a vector
   of counters, the implied result will be a to-many JOIN. The cardinality of JOINS is derived from the structure
   of the actual database, NOT the query.
 
-  Again, the Ident just says where the state for these goes in the database (the table and ID).
+  The join is necessary because this component will be rendering Counter components. The panel should not need to
+  know anything concrete about the implementation of Counter: only that it has a query, initial state, and a way
+  to render.
 
-  The render is very similar to Counter. Assume the queried data will appear in props, pull it out, and
+  The render is very similar to Counter's. The queried data will appear in props: pull it out, and
   then render it. Note the use of `ui-counter`, which is the DOM element factory for `Counter`.
 
-  Finally, the callback is interesting. The counter has the 'Increment' button, but we've connected that from the
+  Finally, we include a callback. The counter has the 'Increment' button, but we've connected that from the
   counter UI back through to an implementation of a callback via 'computed' properties. This is a common pattern. In
-  this simple example the callback structure was added to demonstrate what it looks like, not because we actually
-  needed it (the `transact!` could have been placed in Counter).
+  this simple example the callback structure was added to demonstrate what it looks like. One could argue that the
+  counter could update itself (while maintaining local reasoning).
 
   The implementation of the `counter/inc` mutation was shown earlier.
 
   There are many important points to make here, but we would like to stress the fact that the UI has no idea
-  how counters are implemented, if that logic includes server interactions, etc. There is no callback madness
-  around processing the results. There is no XhrIO mixed into the UI, nor a controller you have to write to
-  accomplish anything.
+  *how* counters are implemented, *if* that logic includes server interactions, etc. There are no nested callbacks
+  of callbacks, no XhrIO mixed into the UI, and interestingly: no need for controller at all!
 
   A simple pattern of updating an abstraction in a database is all you need.
 
@@ -405,14 +415,14 @@
   - We compose in another component we've yet to discuss (which sums all counters). We'll talk more about that shortly
 
   There should be no surprises here. It is the same pattern all over again, except Root does not need an `Ident`, since
-  it need not live in a database table. The data for root can just be a standalone map entry (as can other things...there
-  is no rule that absolutely everything lives in tables. Top-level entries for other data structures are also useful).
+  it need not live in a database table. The data for root can just be a standalone map entry (as can other things. There
+  is *no rule that absolutely everything* lives in tables. Top-level entries for other data structures are also useful).
 
   ### Starting up the App
 
-  Normally you create an Untangled application and mount it on a DIV in your real HTML DOM. Since we're in devcards
-  we have a helper to do that, and it accepts the same basic parameters as `make-untangled-app`, but mounts it on a
-  devcard:
+  Normally you create an Untangled application and mount it on a DIV in your real HTML DOM. We'll cover that later in the
+  Guide. Here we're in devcards and we have a helper to do that. It accepts the same basic parameters as
+  `make-untangled-app`, but mounts the resulting application in a devcard:
 
   ```
   (defcard SampleApp
@@ -443,7 +453,7 @@
 
   You'll need to understand a bit more about the structure of the database to completely understand this code, but you
   see it is really quite simple: pull `:all-counters` from the database, and put them on the panel according to the
-  (known via Ident) location of the panel data in the database.
+  location (known via Ident) of the panel data in the database.
 
   ### Server Implementation
 
