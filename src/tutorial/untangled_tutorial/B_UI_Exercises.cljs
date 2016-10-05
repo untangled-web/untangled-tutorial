@@ -14,6 +14,13 @@
   exercise the most significant features of Om. That said, we want it to be
   tractable.
 
+  NOTE - Namespace aliases used in this document:
+
+```clojure
+(require '[om.next :as om :refer-macros [defui]]
+         '[om.dom :as dom])
+```
+
   ")
 
 (defn person [{:keys [person/name person/mate]}]
@@ -77,7 +84,7 @@
 
   (render [this]
     ;; TODO: (ex 4) Obtain the 'computed' onDelete handler
-    (let [name "name"                                       ; TODO (ex 1): Get the Om properties from this
+    (let [name "What's my :person/name?"                    ; TODO (ex 1): Get the Om properties from this for `name` and `mate`
           mate nil
           checked false]                                    ; TODO (ex 3): Component local state
       (dom/li nil
@@ -111,7 +118,7 @@
   Object
   (render [this]
     ;; TODO (ex 4): Create a deletePerson function
-    (let [people []]                                        ; TODO (ex 2): Get yo stuff
+    (let [people []]                                        ; TODO (ex 2): `people` should come from the props
       (dom/div nil
         (if (= nil people)
           (dom/span nil "Loading...")
@@ -128,7 +135,7 @@
   (render [this]
     (let [widget nil
           new-person nil
-          last-error nil]                                   ; TODO (ex 2): Get yo stuff
+          last-error nil]                                   ; TODO (ex 2): Extract the proper props for each var.
       (dom/div nil
         (dom/div nil (when (not= "" last-error) (str "Error " last-error)))
         (dom/div nil
@@ -170,7 +177,7 @@
   (initLocalState [this] { map-of-data-to-store })
   ```
 
-  in the Object setion of your UI. Then use `om/get-state`, `om/update-state!`, and `om/set-state!` to
+  in the Object section of your UI. Then use `om/get-state`, `om/update-state!`, and `om/set-state!` to
   work with the state.
 
   Add component local state to your Person class, and update the UI so that when
