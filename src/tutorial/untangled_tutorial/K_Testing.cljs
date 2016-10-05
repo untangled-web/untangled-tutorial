@@ -15,7 +15,7 @@
   "# Testing
 
   Untangled includes a library for great BDD. The macros in untangled spec wrap clojure/cljs test, so that you may
-  use any of the features of the core library. The specification DSL makes it much easier to read the
+  use any of the features of that core library. The specification DSL makes it much easier to read the
   tests, and also includes a number of useful features:
 
   - Outline rendering
@@ -52,16 +52,23 @@
 
   ## Running server tests
 
-  See `test/server/app/server_spec.clj` for a sample specification. To run all specs, just use:
+  If your project is set up the same as this one, then you can write a specification like
+  `test/server/app/server_spec.clj`, and the run all specs:
 
   ```
   lein test-refresh
   ```
 
+  which will run the tests every time files are saved.
+
   ## Running client tests (during development)
 
-  Just include `-Dtest` in your JVM argument list. This will cause the test build to start running via figwheel. Then
-  just open the [http://localhost:3449/test.html](http://localhost:3449/test.html) file in your browser.
+  In these exercises you'll be working on read specs that are in `test/client/app` and `test/server/app`. If you followed
+  the instructions for setting up this project locally, then you should be able to run the current sample tests in
+  the browser: [http://localhost:3449/test.html](http://localhost:3449/test.html). If the tests are compiling, you
+  may need to add: `-Dtest -Dtutorial` to the JVM arguments in your run configuration for figwheel.
+
+  <img src=\"/img/figwheel-settings.png\">
 
   ## Anatomy of a specification
 
@@ -86,7 +93,11 @@
 
   Special arrows:
 
-  - `=fn=>` : The right-hand side should be a boolean-returning lambda: (fn [v] boolean)
+  - `=fn=>` : The right-hand side should be a boolean-returning lambda: `(fn [v] boolean)`
+  - `=throws=>` : The right-hand side should be: `(ExceptionType optional-regex optional-predicate)`
+
+  The `optional-regex` will match the message of the exception. The optional-predicate is a function that will be given
+  the exception instance, and can make additional assertions about the exception.
 
   ### Mocking
 
@@ -135,6 +146,21 @@
   `g` can be called any amount (but at least once) and returns 32 each time.
 
   If you were to remove any call to `f` this test would fail.
+
+  #### Using the original function (Spying)
+
+  If you want to spy on a function, you can use mocking with a pre-capture of the function:
+
+  ```
+  (let [real-f f]
+    (when-mocking
+      (f a) => (do
+                 (assertions
+                     a =fn=> even?)
+                 (real-f a))
+
+      ...body...))
+  ```
 
   #### Timeline testing
 
@@ -293,7 +319,7 @@
     (om/transact! comp '[(a-mutation)]))
   ```
 
-  #### Exercise 1: Write a test that verifies the UI helper requests the correct mutation
+  #### **Exercise**: Write a test that verifies the UI helper requests the correct mutation
 
   Make sure you're running the test build in figwheel (`-Dtest`) and have the specification open
   [http://localhost:3449/test.html](http://localhost:3449/test.html).
@@ -360,7 +386,7 @@
   The `check-optimistic-delta` uses the `ui-tx` entry to know what to attempt, and the mutations are already
   installed. So, it makes up an app state (which can be based on `initial-ui-state`, if supplied).
 
-  #### Exercise 2: Check the optimistic update
+  #### **Exercise**: Check the optimistic update
 
   1. Add two entries to an `:optimistic-delta` map in the `do-a-mutation-protocol` map.
   2. Add a `initial-ui-state` to the protocol with: `{ :tbl { 4 {:id 4 :name \"Boo\"} } }` (pretend there was something in the table)
@@ -377,7 +403,7 @@
   `(a-mutation)` is a perfect thing to say to the UI, but when sending it to the server you must add in
   a parameter (e.g. reference ID, auth info, etc.).
 
-  #### Exercise 3: Check that a mutation is sent to the server
+  #### **Exercise**: Check that a mutation is sent to the server
 
   This test is again mostly automated for you. Simply call `(ps/check-server-tx do-a-mutation-protocol)` after
   setting `:server-tx value` in your protocol.
@@ -392,7 +418,7 @@
 
   Add `:remote true` to your return value from `a-mutation`. The test should now pass.
 
-  #### Exercise 4: Mutations that modify the ui-tx
+  #### **Exercise**: Mutations that modify the ui-tx
 
   As you probably already know, it is possible to modify the mutation sent to the server by giving an AST
   as the value of `:remote`. Add a parameter to the transaction by modifying the mutation to:
