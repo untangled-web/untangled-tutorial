@@ -5,12 +5,6 @@
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
-; TODO: Exercises. The project is set up with tests and such...have them augment.
-; Exercises should include:
-; - Showing them how to make inlined/protocol stuff mockable (e.g. wrap calls in function)
-; - testing unhappy paths/exceptions
-; - Use of all arrow types
-
 (defcard-doc
   "# Testing
 
@@ -89,7 +83,7 @@
   The specification macro just outputs a `deftest`, so you are free to use `is`, `are`, etc. The `behavior` macro
   outputs additional events for the renderer to make an outline.
 
-  ## Exercise 1
+  ### Exercise 1
 
   Create a new specification `exercises-spec` in `test/client/app/exercises_spec.cljs`. Add a simple specification
   that tests if `2 * 2 = 4`. Remember to update `tests-to-run`. You can use the `ns` preamble from `sample-spec` to
@@ -105,12 +99,12 @@
   The `optional-regex` will match the message of the exception. The optional-predicate is a function that will be given
   the exception instance, and can make additional assertions about the exception.
 
-  ## Exercise 2
+  ### Exercise 2
 
   Create an additonal spec (in the same file as before) that uses the `=fn=>` arrow to check that an expression results
   in an even value.
 
-  ### Mocking
+  ## Mocking
 
   The mocking system does a lot in a very small space. It can be invoked via the `provided` or `when-mocking` macro.
   The former requires a string and adds an outline section. The latter does not change the outline output.
@@ -158,7 +152,7 @@
 
   If you were to remove any call to `f` this test would fail with a verify error (`f` not invoked enough).
 
-  ## Exercise 3
+  ### Exercise 3
 
   Copy the following code to the top of your testing file:
 
@@ -214,14 +208,14 @@
       ...body...))
   ```
 
-  ## Exercise 4
+  ### Exercise 4
 
   Write more of an integration test for `replace-pairs` that both asserts (via mocking) that `sum-sq` is called,
   but *really* allows the original `sum-sq` to generate the real value. Add assertions that talk about how every result
   is positive, even when the pairs contain negatives. The macro `provided` is the same as `when-mocking`, but allows you
   to add a string to the output (and nest the outline a level deeper) to describe what the mocking is proving.
 
-  #### Timeline testing
+  ## Timeline testing
 
   On occasion you'd like to mock things that use callbacks. Chains of callbacks can be a challenge to test, especially
   when you're trying to simulate timing issues.
@@ -289,7 +283,7 @@
   - Seeding that database via a function you supply (which just returns transaction data)
     - Returning a map from temporary ids in your seed data to real datomic ids in the resulting database
 
-  #### Seed functions
+  ### Seed functions
 
   Seeding database can be a real pain, particularly when you need to create a graph of data. You have to generate
   tempids, etc. Then, when you want to find your seeded data you have to figure it out somehow!
@@ -342,7 +336,7 @@
        ))
   ```
 
-  ## Exercise 5
+  ### Exercise 5
 
   This exercise assumes you know something of the Datomic API. If you don't you might just want to read
   the solution in `db-testing-solutions-spec`.
@@ -420,7 +414,7 @@
     (om/transact! comp '[(a-mutation)]))
   ```
 
-  ## Exercise 6
+  #### Exercise 6
 
   Write a test that verifies the UI helper requests the correct mutation
 
@@ -489,7 +483,7 @@
   The `check-optimistic-delta` uses the `ui-tx` entry to know what to attempt, and the mutations are already
   installed. So, it makes up an app state (which can be based on `initial-ui-state`, if supplied).
 
-  ## Exercise 7
+  #### Exercise 7
 
   Check the optimistic update
 
@@ -508,7 +502,9 @@
   `(a-mutation)` is a perfect thing to say to the UI, but when sending it to the server you must add in
   a parameter (e.g. reference ID, auth info, etc.).
 
-  #### **Exercise**: Check that a mutation is sent to the server
+  #### Exercise 8
+
+  Check that a mutation is sent to the server.
 
   This test is again mostly automated for you. Simply call `(ps/check-server-tx do-a-mutation-protocol)` after
   setting `:server-tx value` in your protocol.
@@ -523,10 +519,12 @@
 
   Add `:remote true` to your return value from `a-mutation`. The test should now pass.
 
-  #### **Exercise**: Mutations that modify the ui-tx
+  #### Exercise 9
+
+  Test a mutations that modifies the ui-tx.
 
   As you probably already know, it is possible to modify the mutation sent to the server by giving an AST
-  as the value of `:remote`. Add a parameter to the transaction by modifying the mutation to:
+  as the value of `:remote` instead of `true`. Add a parameter to the transaction by modifying the mutation to:
 
   ```
    (defmethod m/mutate 'a-mutation [{:keys [state ast] :as env} k params]
