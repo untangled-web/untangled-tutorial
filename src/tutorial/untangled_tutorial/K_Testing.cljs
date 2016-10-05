@@ -89,7 +89,13 @@
   The specification macro just outputs a `deftest`, so you are free to use `is`, `are`, etc. The `behavior` macro
   outputs additional events for the renderer to make an outline.
 
-  ### Assertions
+  ## Exercise 1
+
+  Create a new specification `exercises-spec` in `test/client/app/exercises_spec.cljs`. Add a simple specification
+  that tests if `2 * 2 = 4`. Remember to update `tests-to-run`. You can use the `ns` preamble from `sample-spec` to
+  get the various requires correct.
+
+  ## Assertions
 
   Special arrows:
 
@@ -98,6 +104,11 @@
 
   The `optional-regex` will match the message of the exception. The optional-predicate is a function that will be given
   the exception instance, and can make additional assertions about the exception.
+
+  ## Exercise 2
+
+  Create an additonal spec (in the same file as before) that uses the `=fn=>` arrow to check that an expression results
+  in an even value.
 
   ### Mocking
 
@@ -145,9 +156,50 @@
   should pass. The first call to `f` returns the argument. The next two calls return the argument plus one.
   `g` can be called any amount (but at least once) and returns 32 each time.
 
-  If you were to remove any call to `f` this test would fail.
+  If you were to remove any call to `f` this test would fail with a verify error (`f` not invoked enough).
 
-  #### Using the original function (Spying)
+  ## Exercise 3
+
+  Copy the following code to the top of your testing file:
+
+  ```
+  (defn sum-sq [a b] (+ (* a a) (* b b)))
+
+  (defn replace-pairs [data]
+    (map (fn [[a b]] (sum-sq a b)) data))
+  ```
+
+  Then add the following specification to the botton (`component` is an alias for `behavior`):
+
+  ```
+  (specification \"Exercise 3\"
+    (component \"sum-sq\"
+      (assertions \"Sums the squares of the two arguments\"
+                  (sum-sq 1 1) => 2
+                  (sum-sq 2 4) => 20
+                  (sum-sq -3 -9) => 90))
+    (component \"replace-pairs\"
+      ; ... TODO ...
+      ))
+  ```
+
+  A major aspect of good testing is isolation. When testing something you want the component parts to be
+  tested, and then you want to isolate those components from the success/failure of the dependent (higher-level) parts.
+  This ensures test specificity by ensuring that a minimal number of tests fails when something is wrong
+  (the test should indicate the real, specific, problem).
+
+  The supplied specification shows that `sum-sq` works (generative testing on that would be nice, too).
+
+  Write the rest of the specification such that it will prove that `reduce-pairs` is correct *even if `sum-sq` is broken*
+  (e.g. use mocking to make `sum-sq` return a well-known constant).
+
+  Breaking `sum-sq` should *only* break the first component spec, whereas breaking `replace-pairs` should only break the
+  second. Try it out!
+
+  **Bonus**: Change your mocking to use =1x=> arrows for `sum-sq` to return different, but predictable, values for
+  each call.
+
+  ## Using the original function (Spying)
 
   If you want to spy on a function, you can use mocking with a pre-capture of the function:
 
@@ -161,6 +213,13 @@
 
       ...body...))
   ```
+
+  ## Exercise 4
+
+  Write more of an integration test for `replace-pairs` that both asserts (via mocking) that `sum-sq` is called,
+  but *really* allows the original `sum-sq` to generate the real value. Add assertions that talk about how every result
+  is positive, even when the pairs contain negatives. The macro `provided` is the same as `when-mocking`, but allows you
+  to add a string to the output (and nest the outline a level deeper) to describe what the mocking is proving.
 
   #### Timeline testing
 
@@ -232,13 +291,20 @@
 
   #### Seed functions
 
-  The seed function is very simple: Just return a list of legal Datomic transaction, but use `:datomic.id/X` in
+  Seeding database can be a real pain, particularly when you need to create a graph of data. You have to generate
+  tempids, etc. Then, when you want to find your seeded data you have to figure it out somehow!
+
+  Untangled Datomic makes seeding very simple:
+
+  Just use the `untangled.datomic.test-helpers/link-and-load-seed-data` function, which
+  takes a connection and a list of legal Datomic transaction. The helper function lets you use `:datomic.id/X` in
   place of database IDs anywhere they make sense! This allows you to create any graph of data you need:
 
   ```
-  (defn seed1 []
-     [{:db/id :datomic.id/thing :thing/name \"Boo\" }
-      {:db/id :datomic.id/list :list/things #{:datomic.id/thing}}])
+  (defn seed1 [connection]
+    (helpers/link-and-load-seed-data connection
+       [{:db/id :datomic.id/thing :thing/name \"Boo\" }
+        {:db/id :datomic.id/list :list/things #{:datomic.id/thing}}]))
 
   (specification \"Boo\"
     (with-db-fixture db
@@ -249,7 +315,8 @@
 
   The fact that the seed is a function means you can compose your seed functions for quick, DRY test data generation.
 
-  To get the remapped IDs, it helps to use something like this:
+  To get the remapped IDs, you can just pull the seed result from the fixture. The following function
+  can be useful:
 
   ```
   (defn db-fixture-defs
@@ -275,6 +342,40 @@
        ))
   ```
 
+  ## Exercise 5
+
+  This exercise assumes you know something of the Datomic API. If you don't you might just want to read
+  the solution in `db-testing-solutions-spec`.
+
+  Edit `db-testing-spec` in the `server/app` package. Uncomment the specification, and write logic to prove the
+  indicated TODO items.
+
+  ```
+  (specification \"My Seeded Users\"
+    (with-db-fixture my-db
+      (let [{:keys [connection get-id]} (db-fixture-defs my-db)
+            info (udb/get-info my-db)
+            db (d/db connection)
+            get-user (fn [id] (some->> (get-id id) (d/entity db)))
+            joe (get-user :datomic.id/joe)
+            mary (get-user :datomic.id/mary)
+            sam (get-user :datomic.id/sam)
+            sally (get-user :datomic.id/sally)]
+        (assertions
+          \"Joe is married to Mary\"
+          ; TODO
+          \"Mary is friends with Sally\"
+          ; TODO
+          \"Joe is friends with Mary and Sam\"
+          ; TODO
+          \"Sam is 15 years old\"
+          ; TODO
+          ))
+      :migrations \"app.sample-migrations\"
+      :seed-fn user-seed))
+  ```
+
+
   ## Protocol Testing
 
   Untangled client and server include utilities to help you test network protocols without a network. The idea is to
@@ -284,16 +385,16 @@
 
   In general, we place these tests and setup in a single `cljc` file. Here are the basic tests you want to run:
 
-  - A test that joins your UI invocation with a real transaction. This proves your UI is saying what you expect.
-  - A test that checks the local mutation of the transaction.
-  - A test that checks that the mutation/query is transformed as expected (if at all)
-  - A test that the server transaction does proper tempid remapping (if tempids are used)
-  - A test that the server responds as expected (if it was a query)
-  - A test that the server does the right change to server-side state.
+  - A test that joins your UI invocation with a real (Om Next) transaction. This proves your UI is saying what you expect.
+  - A test that checks the *local mutation* of the transaction.
+  - A test that checks that the mutation/query is transformed as expected for the *server request* (if at all)
+  - A test that the *server transaction* does proper *tempid remapping* (if tempids are used)
+  - A test that the *server responds* as expected (if it was a query)
+  - A test that the server does the right *change to server-side state*.
 
   If all of these tests pass, then you have pretty strong proof that your overall dynamic interactions in the Untangled
-  application works (optimistic updates, queries, and full stack mutations). This covers a lot of your code in a way
-  that is easy to write and understand!
+  application works (optimistic updates, queries, and full stack mutations). This covers a lot of your code in a
+  full-stack transactional way.
   ")
 
 (defcard-doc
@@ -319,7 +420,9 @@
     (om/transact! comp '[(a-mutation)]))
   ```
 
-  #### **Exercise**: Write a test that verifies the UI helper requests the correct mutation
+  ## Exercise 6
+
+  Write a test that verifies the UI helper requests the correct mutation
 
   Make sure you're running the test build in figwheel (`-Dtest`) and have the specification open
   [http://localhost:3449/test.html](http://localhost:3449/test.html).
@@ -354,7 +457,7 @@
 
   The next thing you'd like to do is ensure that the mutation does the correct optimistic update. Since this could
   involve changing all sorts of things in a map at arbitrary nesting levels, and should technically run as
-  a partial integration test through the internal parser Untangled provides a nice helper function
+  a partial integration test through the internal parser, Untangled provides a nice helper function
   that does all of this for you.
 
   This is made possible by the fact that mutations are globally added to a single multimethod, and all of the plumbing
@@ -386,7 +489,9 @@
   The `check-optimistic-delta` uses the `ui-tx` entry to know what to attempt, and the mutations are already
   installed. So, it makes up an app state (which can be based on `initial-ui-state`, if supplied).
 
-  #### **Exercise**: Check the optimistic update
+  ## Exercise 7
+
+  Check the optimistic update
 
   1. Add two entries to an `:optimistic-delta` map in the `do-a-mutation-protocol` map.
   2. Add a `initial-ui-state` to the protocol with: `{ :tbl { 4 {:id 4 :name \"Boo\"} } }` (pretend there was something in the table)
@@ -490,6 +595,13 @@
 
   So, in all of the above tests you can use these namespaced keywords to simulate Om temporary and seeded data IDs.
 
+
+  # Solutions
+
+  The solutions to the pure UI exercises are in `app.exercises-solutions-spec` namespace in the client source.
+
+  The solutions to the full-stack protocol tests are in the `test/shared/app` folder as the `testing-tutorial-solutions-spec`
+  namespace.
   ")
 
 

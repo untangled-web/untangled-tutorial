@@ -2,6 +2,8 @@
   (:require
     app.sample-spec
     app.testing-tutorial-solutions-spec
+    app.exercises-solutions-spec
+    ; TODO: Import your additional specs here
     app.testing-tutorial-spec))
 
 ;********************************************************************************
