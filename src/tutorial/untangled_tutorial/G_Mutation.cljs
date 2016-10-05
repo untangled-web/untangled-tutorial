@@ -2,14 +2,8 @@
   (:require-macros [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
-
-; TODO: integrate-ident! should be covered, and should be suggested as part
-; of an exercise.
-; ADVANCED:
-; TODO: Talk about integrating external data (e.g. setTimeout, XRH from Yahoo, etc.)
-; TODO: might be useful to talk about tree->db, merge!, and just merge-state! (advanced)
-; really important to cover WHY you NEED a query AND data to do this
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
+            [untangled.client.core :as uc]))
 
 (defcard-doc
   "
@@ -146,6 +140,91 @@
                     7 { :id 7 :person/name \"Andy\" }}}
   ```
 
+  ### Using `integrate-ident!`
+
+  There is a helper function in the core library that can help with the operations we're describing here: `integrate-ident!`.
+  This function can work directly on app state to append, replace, or prepend idents in your application database. It
+  is probably simplest to just show some examples via cards:
+  "
+  )
+
+(defcard integrate-ident-append
+         "You can use the function to append an ident to an existing list of idents anywhere in you app state (by
+         update-in path). Append will refuse to append a duplicate.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :append [:table/by-id 1 :list-of-things])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :append [:table/by-id 1 :list-of-things]
+                                                             )} "Append a random ident")))
+         {:table/by-id {1 {:list-of-things []}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-prepend
+         "You can also use it to prepend. It will refuse to prepend a duplicate.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :prepend [:table/by-id 1 :list-of-things])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :prepend [:table/by-id 1 :list-of-things]
+                                                             )} "Prepend a random ident")))
+         {:table/by-id {1 {:list-of-things []}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-replace
+         "You can use it to replace an item. The target MUST already exist, and can be a to-one or to-many.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :replace [:table/by-id 1 :list-of-things 0])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :replace [:table/by-id 1 :list-of-things 0]
+                                                             )} "Replace first with a random ident")))
+         {:table/by-id {1 {:list-of-things [[:old-ident 1] [:old-ident 2]]}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-combo
+         "The function allows you to specify as many operations as you need to do at once.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :append [:table/by-id 1 :list-of-things]
+           :prepend [:table/by-id 2 :list-of-things]
+           :replace [:the-thing-I-like]
+           :replace [:table/by-id 3 :list-of-things 0])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :append [:table/by-id 3 :list-of-things]
+                                                             :prepend [:table/by-id 2 :list-of-things]
+                                                             :replace [:the-thing-I-like]
+                                                             :replace [:table/by-id 1 :list-of-things 0])
+                              } "Do a bunch all at once!")))
+         {:the-thing-I-like [:thing 1]
+          :table/by-id {1 {:list-of-things [[:old-ident 1] [:old-ident 2]]}
+                        2 {:list-of-things [[:old-ident 9] [:old-ident 44]]}
+                        3 {:list-of-things [[:old-ident 98] [:old-ident 99]]}}}
+         {:inspect-data true})
+
+(defcard-doc
+
+  "
   ## Deleting things
 
   Deleting things can include two possible steps: removing the ident that refers to the table (e.g. from the
@@ -158,6 +237,21 @@
   removing things, but then it might be necessary to implement some form of garbage collection on your tables. Given
   the power of data structure tools in cljs, it is simple enough to scan the database for idents, and then remove
   anything from the tables that are not in this collected set of idents.
+
+  ## Returning a Value From a Mutation
+
+  We included this section because it is a common question. The answer is \"you can't\". On the surface this seems like
+  a problem, but if you think about the overall model it becomes quite evident:
+
+  - Which mutation return value do you get (there could be a local AND remote)?
+  - What should the mutation return? The server version has no idea what is on your UI, so how can it decide what updated
+  facts you need?
+  - Where would the return value go? Transact can be reasoned about asynchronously, but you're in browser land. It isn't.
+  You cannot capture it synchronously. We could give you callback madness, but we're here to free you from that. Finally,
+  there is no query, and as you saw in many other places, we cannot merge data to the database correctly without one!
+
+  See [Advanced Mutation](#!/untangled_tutorial.M30_Advanced_Mutation), and the [Reference Guide](http://untangled-web.github.io/untangled/reference/reference.html#_implementing_server_mutations)
+  on server mutations.
 
   ## Details on refreshing components after mutation
 
@@ -177,8 +271,8 @@
   This mechanism works as follows (basically):
 
   Any keywords mentioned in the transaction are used to look up components (via the internal indexer). Those
-  components are used to transform the keywords requested into queries to run against the local app state. Those
-  queries are run, the results are focused to the target components, and those components are re-rendered. Of course,
+  components are used to transform the keywords requested into full queries to run against the local app state. Those
+  queries are run, the results are focused to the target components, and those components are re-rendered. Of course
   if the state hasn't changed, then React will optimize away any actual DOM change.
 
   ## Untangled built-in mutations
