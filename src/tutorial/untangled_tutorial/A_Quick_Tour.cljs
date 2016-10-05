@@ -34,7 +34,7 @@
 (def ui-counter (om/factory Counter {:keyfn :counter/id}))
 
 (defmethod m/mutate 'counter/inc [{:keys [state] :as env} k {:keys [id] :as params}]
-  {;:remote true
+  {:remote true
    :action (fn [] (swap! state update-in [:counter/by-id id] increment-counter))})
 
 (defmethod m/mutate 'add-counters-to-panel [{:keys [state] :as env} k {:keys [id] :as params}]
@@ -475,7 +475,9 @@
 (defcard FinalResult
          "Below is the final result of the above application, complete with faked server interactions (we use
          setTimeout to fake network latency). If you reload this page and jump to the bottom, you'll see the initial
-         server loading."
+         server loading. (If you see an error related to mounting a DOM node, try reloading the page). You can
+         see the mocked server processing take place in a delayed fashion in the Javascript Console of your
+         browser."
          (untangled-app Root
                         :started-callback (fn [{:keys [reconciler] :as app}]
                                             (log/info "Application (re)started")
