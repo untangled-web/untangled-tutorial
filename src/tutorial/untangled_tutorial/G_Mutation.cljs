@@ -2,14 +2,9 @@
   (:require-macros [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
+            [untangled.client.core :as uc]))
 
-; TODO: integrate-ident! should be covered, and should be suggested as part
-; of an exercise.
-; ADVANCED:
-; TODO: Talk about integrating external data (e.g. setTimeout, XRH from Yahoo, etc.)
-; TODO: might be useful to talk about tree->db, merge!, and just merge-state! (advanced)
-; really important to cover WHY you NEED a query AND data to do this
 
 (defcard-doc
   "
@@ -146,6 +141,91 @@
                     7 { :id 7 :person/name \"Andy\" }}}
   ```
 
+  ### Using `integrate-ident!`
+
+  There is a helper function in the core library that can help with the operations we're describing here: `integrate-ident!`.
+  This function can work directly on app state to append, replace, or prepend idents in your application database. It
+  is probably simplest to just show some examples via cards:
+  "
+  )
+
+(defcard integrate-ident-append
+         "You can use the function to append an ident to an existing list of idents anywhere in you app state (by
+         update-in path). Append will refuse to append a duplicate.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :append [:table/by-id 1 :list-of-things])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :append [:table/by-id 1 :list-of-things]
+                                                             )} "Append a random ident")))
+         {:table/by-id {1 {:list-of-things []}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-prepend
+         "You can also use it to prepend. It will refuse to prepend a duplicate.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :prepend [:table/by-id 1 :list-of-things])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :prepend [:table/by-id 1 :list-of-things]
+                                                             )} "Prepend a random ident")))
+         {:table/by-id {1 {:list-of-things []}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-replace
+         "You can use it to replace an item. The target MUST already exist, and can be a to-one or to-many.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :replace [:table/by-id 1 :list-of-things 0])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :replace [:table/by-id 1 :list-of-things 0]
+                                                             )} "Replace first with a random ident")))
+         {:table/by-id {1 {:list-of-things [[:old-ident 1] [:old-ident 2]]}}}
+         {:inspect-data true})
+
+(defcard integrate-ident-combo
+         "The function allows you to specify as many operations as you need to do at once.
+
+         ```
+         (uc/integrate-ident! state [:new-ident (rand-int 100000)]
+           :append [:table/by-id 1 :list-of-things]
+           :prepend [:table/by-id 2 :list-of-things]
+           :replace [:the-thing-I-like]
+           :replace [:table/by-id 3 :list-of-things 0])
+         ```
+         "
+         (fn [state _]
+           (dom/div nil
+             (dom/button #js {:onClick #(uc/integrate-ident! state [:new-ident (rand-int 100000)]
+                                                             :append [:table/by-id 3 :list-of-things]
+                                                             :prepend [:table/by-id 2 :list-of-things]
+                                                             :replace [:the-thing-I-like]
+                                                             :replace [:table/by-id 1 :list-of-things 0])
+                              } "Do a bunch all at once!")))
+         {:the-thing-I-like [:thing 1]
+          :table/by-id {1 {:list-of-things [[:old-ident 1] [:old-ident 2]]}
+                        2 {:list-of-things [[:old-ident 9] [:old-ident 44]]}
+                        3 {:list-of-things [[:old-ident 98] [:old-ident 99]]}}}
+         {:inspect-data true})
+
+(defcard-doc
+
+  "
   ## Deleting things
 
   Deleting things can include two possible steps: removing the ident that refers to the table (e.g. from the
