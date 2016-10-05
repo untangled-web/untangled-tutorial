@@ -10,6 +10,8 @@
             [untangled.client.logging :as log]
             [untangled.client.data-fetch :as df]))
 
+(defn increment-counter [counter] (update counter :counter/n inc))
+
 (defui ^:once Counter
   static uc/InitialAppState
   (uc/initial-state [this {:keys [id start]
@@ -32,13 +34,12 @@
 (def ui-counter (om/factory Counter {:keyfn :counter/id}))
 
 (defmethod m/mutate 'counter/inc [{:keys [state] :as env} k {:keys [id] :as params}]
-  {:remote true
-   :action (fn [] (swap! state update-in [:counter/by-id id :counter/n] inc))})
+  {;:remote true
+   :action (fn [] (swap! state update-in [:counter/by-id id] increment-counter))})
 
 (defmethod m/mutate 'add-counters-to-panel [{:keys [state] :as env} k {:keys [id] :as params}]
   {:action (fn []
              (let [ident-list (get @state :all-counters)]
-               (js/console.log :idents ident-list :state @state)
                (swap! state update-in [:panels/by-kw :counter] assoc :counters ident-list)))})
 
 (defui ^:once CounterPanel
@@ -52,9 +53,12 @@
   Object
   (render [this]
     (let [{:keys [counters]} (om/props this)
-          click-callback (fn [id] (om/transact! this `[(counter/inc {:id ~id}) :counter-sum]))]
+          click-callback (fn [id] (om/transact! this
+                                                `[(counter/inc {:id ~id}) :counter-sum]))]
       (dom/div nil
-        (dom/style nil ".counter { width: 400px; padding-bottom: 20px; } button { margin-left: 10px; }")
+        ; embedded style: kind of silly in a real app, but doable
+        (dom/style nil ".counter { width: 400px; padding-bottom: 20px; }
+                        button { margin-left: 10px; }")
         (map #(ui-counter (om/computed % {:onClick click-callback})) counters)))))
 
 (def ui-counter-panel (om/factory CounterPanel))
@@ -129,14 +133,14 @@
   (send [this edn ok err]
     (let [resp (server {} edn)]
       ; simulates a network delay:
-      (js/setTimeout #(ok resp) 300)))
+      (js/setTimeout #(ok resp) 700)))
   (start [this app]
     (assoc this :complete-app app)))
 
 (defcard-doc
   "# Quick Tour
 
-  Untangled is meant to be as simple as possible, but as Rich would tell you:
+  Untangled is meant to be as simple as possible, but as Rich Hickey would tell you:
   simple does not mean easy. Fortunately, hard vs. easy is something you can fix just by learning.
 
   Om Next (the lower layer of Untangled) takes a very progressive approach
@@ -145,10 +149,10 @@
 
   In this quick tour our intention is to show you a full-stack Untangled
   application. We hope that as you read this Quick Start you will
-  start to comprehend how simple the resulting structure is:
+  start to comprehend how *simple* the resulting structure is:
 
   - No controllers are needed, ever.
-  - Networking becomes completely transparent.
+  - Networking becomes mostly transparent, and gives a synchronous reasoning model (by default)
   - Server and client code structure are identical. In fact, this tour leverages this fact to simulate server code in
   the browser that is identical to what you'd *put* on the server.
   - The reasoning at the UI layer can be completely local.
@@ -162,17 +166,316 @@
   many cases Untangled is required to 'make a call' about how to do something. When it does, our documentation tries to
   discuss the relative merits and costs.
 
-  ##
+  The name 'Untangled' is *not* meant to be a commentary on Om Next, but instead on the general state of web
+  development circa 2016. Om Next and Untangled are two layers of a solution that makes things
+  simpler for you.
 
+  ## Om Next Components can use Stock React components
 
+  The first major strength is that Om Next integrates with stock React components. So, if you already
+  understand React you already have a head start. If you know nothing of React, you should eventually
+  read more about it. For now, we'll cover everything you need to know.
+
+  ## The Rendering Model
+
+  Untangled recommends you treat the UI as a pure function that, given the state of the application 'right now',
+  can be re-rendered on each frame (change of state).
+
+  ```
+  App state -> render -> DOM
+  ```
+
+  This is a key part of the simplification: You don't have to worry how to keep bits of UI up-to-date.
+
+  There is a key difference that users of other frameworks might miss here: not only do you *not* have to figure out
+  the complexities of keeping the DOM up to date: there is no mutation or hidden local state to trip you up.
+  As you move from state to state (a sequence of app states, each of which is itself immutable) you can pretend
+  as if render re-creates the entire DOM. This means you can test and reason about your UI in isolation from all
+  other logic!
+
+  ## Core Model Concepts
+
+  Untangled uses a very simple (default Om Next) database format for the application state in the browser. Basically
+  this format is a normalized graph database made of maps and vectors. Anything you show on the UI is structured into
+  this database, and can be queried to create arbitrary UI trees for display.
+
+  A given item in this database can be shown in as many places on the UI as makes sense. The fact that the database
+  is *normalized* means that changing the item once in the database will result in all displayed versions being
+  refreshed easily.
+
+  The model manipulation thus maintains the desired local reasoning model (to entries in database tables). You write
+  functions that know how to manipulate specific 'kinds' of things in the database, and think nothing of the UI.
+
+  For example, say we have a counter that we'd like to represent with this data structure:
+
+  ```
+  { :counter/id 1 :counter/n 22 }
+  ```
+
+  We can write simple functions to manipulate counters:
+
+  "
+  (dc/mkdn-pprint-source increment-counter)
+  "
+
+  and think about that counter as a complete abstract thing (and write clojure specs for it, etc.).
+
+  The Untangled database table for counters looks something like this:
+
+  ```
+  { :counter/by-id { 1 { :counter/id 1 :counter/n 1 }
+                     2 { :counter/id 2 :counter/n 9 }
+                     ...}}
+  ```
+
+  A table is just an entry in the database that, by convention, includes a namespace and name to indicate the kind of
+  thing in the table and how it is indexed. The value of the table is just a map whose keys are the IDs, and values
+  are the entries.
+
+  The general app state is held in a top-level atom. So, updating any object in the database generally takes the
+  form:
+
+  ```
+  (swap! state update-in [:table/key id] operation)
+  ```
+
+  or in our example case:
+
+  ```
+  (swap! state update-in [:counter/by-id 1] increment-counter)
+  ```
+
+  NOTE: You still need to know *where* to put this code.
+
+  ## Mutations as Abstract Transactions
+
+  In Untangled, you don't do model twiddling on the UI. There is a clear separation of concerns for several good
+  reasons:
+
+  - It generally pays not to mix your low-level logic with UI.
+  - The concept of an abstract mutation can isolate the UI from networking, server interactions, and async thinking.
+  - Abstract mutations give nice auditing and comprehension on both client and server.
+
+  The main UI entry point to affecting a change is the `om/transact!` function. This function lets you submit
+  an abstract sequence of modifications that you'd like to make, and isolates the UI author from the details of
+  implementing that model/remote behavior.
+
+  The concrete artifacts you'll see in Untangled code are the invocation of the `transact!`, and the implementation
+  of the operations listed in the transaction:
+
+  ```
+  (om/transact! this `[(counter/increment {:id ~id})])
+  ```
+
+  in the above transaction, we must use Clojure syntax quoting so that we can list an abstract muation (looks like
+  a function call, but is not) and parameters that themselves are derived from the environment (in this case
+  an id).
+
+  The concrete implementation of the mutation on the model side looks like this:
+
+  ```
+  (defmethod m/mutate 'counter/inc [{:keys [state] :as env} k {:keys [id] :as params}]
+    { :action
+        (fn []
+          (swap! state update-in [:counter/by-id id] increment-counter))})
+  ```
+
+  This looks a little hairy at first until you notice the primary guts are just what we talked about earlier in
+  the model manipulation: it's just an update-in.
+
+  The wrapping is a pretty consistent pattern: the app state and parameters are passed into a multimethod, which is
+  dispatched on the symbol mentioned in the `transact!`. The basics are:
+
+  - You key on a symbol instead of writing a function with that symbol name
+  - You return a map
+  - The `:action` key indicates a function to run as an optimistic update to the browser database
+
+  When you want to interact with a server, you need merely change it to:
+
+  ```
+  (defmethod m/mutate 'counter/inc [{:keys [state] :as env} k {:keys [id] :as params}]
+    { :remote true ; <---- this is all!!!
+      :action
+        (fn []
+          (swap! state update-in [:counter/by-id id] increment-counter))})
+  ```
+
+  and then write a similar function on the server that has an `:action` to affect the change on the server!
+
+  At first this seems like a bit of overkill on the boilerplate until you realize that there are a number of things
+  being handled here:
+
+  - Local optimistic updates
+  - Automatically plumbed server interactions
+  - Use of the same symbol for the operation on the client and server
+  - Operations in the UI and on the server are identical in appearance
+  - Consistent implementation of model interactions on the client and server
+  - The operations 'on the wire' read like abstract function calls, and lead to easy auditing and reasoning, or
+  even easy-to-implement CQRS architectures.
+
+  ## An Example
+
+  Let's write a simple application that shows counters that can be incremented. Each counter has an ID and a value (n).
+
+  ### Making a Counter component
+
+  Here's the Untangled implementation of that UI component:
 
   "
   (dc/mkdn-pprint-source Counter)
-  (dc/mkdn-pprint-source ui-counter)
-  (dc/mkdn-pprint-source CounterPanel)
-  (dc/mkdn-pprint-source ui-counter-panel))
+  "
 
-(defcard SampleApp
+  It looks a bit like a `defrecord` implementing protocols. Here is a description of the parts:
+
+  - InitialAppState : Represents how to make an instance of the counter in the browser database. Parameters are supported
+  for making more than one on the UI. This function should return a map that matches the properties asked for in the query.
+  - IQuery : Represents what data is needed for the UI. In this case, a list of properties that exist (keys of the
+  map that represents counters in the database). Note we can tune this up/down depending on the needs of the UI. Counters
+  could have labels, owners, purposes, etc.
+  - Ident : Represents the table/ID of the database data for the component. This is a function that, given an example
+  of a counter, will return a vector that has two elements: the table and the ID of the entry. This is used
+  to assist in auto-normalization of the browser database.
+  - Object/render : This is the (pure) function that outputs what a Counter should look like on the DOM
+
+  The incoming data from the database comes in via `om/props`, and things like callbacks come in via a mechanism known
+  as the 'computed' data (e.g. stuff that isn't in the database, but is generated by the UI, such as callbacks).
+
+  A `defui` generates a React Component. In order to render an instance of a Counter, we must make an element
+  factory:
+  "
+  (dc/mkdn-pprint-source ui-counter)
+  "
+  If more than one of something can appear in the UI as siblings, you must specify a `:keyfn` that helps React
+  distinguish the DOM elements. You can ignore that for now.
+
+  The most important point is that you can reason about `Counter` in a totally local way.
+
+  ### Combining Counters into a Panel
+
+  Lets assume we want to display some arbitrary number of counters together in a panel. We can encode that (and the
+  element factory) as:
+  "
+  (dc/mkdn-pprint-source CounterPanel)
+  (dc/mkdn-pprint-source ui-counter-panel)
+  "
+  Note the mirroring again between the initial state and the query. The initial state provides an initial model
+  of what should be in the database, and the query indicates which bits of that state are required for the
+  current component.
+
+  In this case the query contains a map, which is the query syntax for a JOIN. You can read this query as
+  'Query for :counters, which is a JOIN on Counter'. Note that since initial state is setting up a vector
+  of counters, the implied result will be a to-many JOIN. The cardinality of JOINS is derived from the structure
+  of the actual database, NOT the query.
+
+  Again, the Ident just says where the state for these goes in the database (the table and ID).
+
+  The render is very similar to Counter. Assume the queried data will appear in props, pull it out, and
+  then render it. Note the use of `ui-counter`, which is the DOM element factory for `Counter`.
+
+  Finally, the callback is interesting. The counter has the 'Increment' button, but we've connected that from the
+  counter UI back through to an implementation of a callback via 'computed' properties. This is a common pattern. In
+  this simple example the callback structure was added to demonstrate what it looks like, not because we actually
+  needed it (the `transact!` could have been placed in Counter).
+
+  The implementation of the `counter/inc` mutation was shown earlier.
+
+  There are many important points to make here, but we would like to stress the fact that the UI has no idea
+  how counters are implemented, if that logic includes server interactions, etc. There is no callback madness
+  around processing the results. There is no XhrIO mixed into the UI, nor a controller you have to write to
+  accomplish anything.
+
+  A simple pattern of updating an abstraction in a database is all you need.
+
+  There is one exception: That weird inclusion of `:counter-sum` in the transaction. We'll explain that shortly.
+
+  ### Adding the Panel to a Root element
+
+  Untangled UI (and DOM UI in general) forms a tree. All trees must eventually have a root.
+
+  The UI composition (and the composition of queries and initial state) must continue to your UI Root. So, in our case
+  our root looks like this:
+
+  "
+  (dc/mkdn-pprint-source Root)
+  "
+
+  The initial state is a composition from the nested panel, as is the query. We add in two additional things here:
+
+  - `:ui/loading-data` is a special key, available at the root, that is true when data is loading over the network
+  - We compose in another component we've yet to discuss (which sums all counters). We'll talk more about that shortly
+
+  There should be no surprises here. It is the same pattern all over again, except Root does not need an `Ident`, since
+  it need not live in a database table. The data for root can just be a standalone map entry (as can other things...there
+  is no rule that absolutely everything lives in tables. Top-level entries for other data structures are also useful).
+
+  ### Starting up the App
+
+  Normally you create an Untangled application and mount it on a DIV in your real HTML DOM. Since we're in devcards
+  we have a helper to do that, and it accepts the same basic parameters as `make-untangled-app`, but mounts it on a
+  devcard:
+
+  ```
+  (defcard SampleApp
+     (untangled-app Root
+                    :started-callback (fn [{:keys [reconciler] :as app}]
+                                        (log/info \"Application (re)started\")
+                                        (df/load-data reconciler [{:all-counters (om/get-query Counter)}]
+                                                      :post-mutation 'add-counters-to-panel))
+                    :networking (map->MockNetwork {}))
+         {})
+  ```
+
+  In this quick tour we're faking the networking so you can easily explore what the server and client look like in a
+  single file.
+
+  The `:started-callback` is triggered as the application loads. This is where you can use Untagled's networking layer
+  to pre-fetch data from the server. In our case, we want to get all of the counters. Note that we can (and should) use UI
+  queries. This triggers auto-normalization of the response. The `:post-mutation` is triggered after the load, and
+  can modify the database to construct various views of the loaded data. In our case, it moves the counters onto
+  the panel:
+
+  ```
+  (defmethod m/mutate 'add-counters-to-panel [{:keys [state] :as env} k {:keys [id] :as params}]
+    {:action (fn []
+               (let [ident-list (get @state :all-counters)]
+                 (swap! state update-in [:panels/by-kw :counter] assoc :counters ident-list)))})
+  ```
+
+  You'll need to understand a bit more about the structure of the database to completely understand this code, but you
+  see it is really quite simple: pull `:all-counters` from the database, and put them on the panel according to the
+  (known via Ident) location of the panel data in the database.
+
+  ### Server Implementation
+
+  We're representing our server database as an in-RAM atom:
+
+  "
+  (dc/mkdn-pprint-source server-state)
+  "
+
+  #### Server Queries
+
+  To respond to the `:all-counters` query, we simply write a function that returns the correct data and hook it into
+  the server engine. In real server code this is commonly done with a multimethod (your choice). The take-away here
+  is that you write very little 'plumbing'...just the logic to get the data, and return it in a map with a
+  `:value` key:
+
+  "
+  (dc/mkdn-pprint-source read-handler)
+  "
+  #### Server Mutations
+
+  We mentioned earlier that turning a client mutation into something that also happens on the server is as simple as
+  adding a `:remote true` to the response of the mutation function.
+
+  The server code is equally trivial (again, in a real server you'd typically use a multimethod):
+  "
+  (dc/mkdn-pprint-source write-handler))
+
+(defcard FinalResult
+         "Below is the final result of the above application, complete with faked server interactions (we use
+         setTimeout to fake network latency). If you reload this page and jump to the bottom, you'll see the initial
+         server loading."
          (untangled-app Root
                         :started-callback (fn [{:keys [reconciler] :as app}]
                                             (log/info "Application (re)started")
@@ -180,3 +483,35 @@
                                                           :post-mutation 'add-counters-to-panel))
                         :networking (map->MockNetwork {}))
          {})
+
+(defcard-doc
+  "### The Grand Total
+
+  You'll notice that there is a part of the UI that is tracking the grand total of the counters. This component shows
+  a few more interesting features: Rendering derived values, querying entire tables, and refreshing derived UI.
+
+  This is the implementation of the counter UI:
+  "
+  (dc/mkdn-pprint-source CounterSum)
+  "
+  The query is interesting. Queries are vectors of things you want. When one of those things is a two-element vector
+  it knows you want an entry in a table (e.g. [:counter/by-id 3]). If you use the special symbol `'_`, then you're asking
+  for an entire top-level entry (in this case a whole table).
+
+  Thus we can easily use that to calculate our desired UI.
+
+  However, it turns out that we have a problem: Nothing in Untangled or Om Next will trigger this component to refresh
+  when an individual counter changes! The mutations are abstract, and even though you can imagine that the UI refresh is
+  a pure function that recreates the DOM, it is in fact optimized to only refresh the bits that have changed. Since the
+  data that changed wasn't a counter, Om Next will short-circuit the sum for efficiency.
+
+  This is the point of the earlier mysterious `:counter-sum` in the `transact!`. Any keyword that appears in a transaction
+  will cause Om to re-render any component that queried for that property (in our case the Root UI component). These
+  are called 'follow-on reads', to imply that 'anything that reads the given property should be asked to re-read it
+  (and implicitly, this means it will re-render if the value has changed)'.
+
+  You can, of course, play with the source code of this example in the devcards.
+
+  We certainly hope you will continue reading into the deatils of all of these features. You should start with
+  [next chapter](#!/untangled_tutorial.B_UI) on UI.
+  ")
