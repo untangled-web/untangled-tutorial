@@ -270,11 +270,10 @@
   (om/transact! this `[(counter/increment {:id ~id})])
   ```
 
-  in the above transaction, we must use Clojure syntax quoting so that we can list an abstract muation (which looks like
+  in the above transaction, we must use Clojure syntax quoting so that we can list an abstract mutation (which looks like
   a function call, but is not) and parameters that themselves are derived from the environment (in this case
   an id). If you're not a Clojure(script) programmer, we understand that the above expression looks a little scary. The
-  '`' means 'treat the following thing literally', and the '~' means 'don't treat this thing literally'. It's a way
-  of keeping the compiler from treating the increment as a function while still being able to embed `id` from the local
+  '&grave;' means 'treat the following thing literally', and the '~' means 'don't treat this thing literally'. It's a way of keeping the compiler from treating the increment as a function while still being able to embed `id` from the local
   execution environment.
 
   The concrete implementation of the mutation on the model side looks like this:
@@ -441,7 +440,7 @@
   In this quick tour we're faking the networking so you can easily explore what the server and client look like in a
   single file.
 
-  The `:started-callback` is triggered as the application loads. This is where you can use Untagled's networking layer
+  The `:started-callback` is triggered as the application loads. This is where you can use Untangled's networking layer
   to pre-fetch data from the server. In our case, we want to get all of the counters. Note that we can (and should) use UI
   queries. This triggers auto-normalization of the response. The `:post-mutation` is triggered after the load, and
   can modify the database to construct various views of the loaded data. In our case, it moves the counters onto
@@ -532,6 +531,6 @@
 
   You can, of course, play with the source code of this example in the devcards.
 
-  We certainly hope you will continue reading into the deatils of all of these features. You should start with the
+  We certainly hope you will continue reading into the details of all of these features. You should start with the
   [next chapter](#!/untangled_tutorial.B_UI) on UI.
   ")
