@@ -369,13 +369,15 @@
       :seed-fn user-seed))
   ```
 
-
   ## Protocol Testing
 
   Untangled client and server include utilities to help you test network protocols without a network. The idea is to
   prove (via a shared data file instead of a network) that the client is saying the right thing and the server
   will understand it and return a compatible result. Furthermore, it allows testing that the server response will
   result in your expected client app state.
+
+  **NOTE:** This feature is somewhat experimental. The client-side tests are easy-to-write and confirm; however, the
+  server side typically becomes somewhat complex (depending on your database seeding needs).
 
   In general, we place these tests and setup in a single `cljc` file. Here are the basic tests you want to run:
 
@@ -389,6 +391,22 @@
   If all of these tests pass, then you have pretty strong proof that your overall dynamic interactions in the Untangled
   application works (optimistic updates, queries, and full stack mutations). This covers a lot of your code in a
   full-stack transactional way.
+
+  ### Handling temporary IDs in protocol tests
+
+  The protocol testing helpers you're about to see completely understand temporary IDs, and this make them really easy to use.
+
+  The basic features are:
+
+  - Anywhere you use a keyword namespaced to `:om.tempid/` (client or server side of the protocol), then
+  the protocol helpers will translate them to real Om tempids during the testing
+  (e.g. ensuring type checks for Om tempids will work in your real code).
+  - Anywhere you use a keyword namespaced to `:datomic.id/` (client or server side of the protocol)
+  the helpers will treat them correctly (e.g. on the server side it will join them up to seeded data correctly)
+
+  So, in all of the tests you can use these namespaced keywords to simulate Om temporary and seeded data IDs.
+
+  See `app.testing-tutorial-solutions-spec` for a complete running example with proper `require`s.
   ")
 
 (defcard-doc
@@ -397,60 +415,51 @@
   At the moment we're not doing direct UI testing. Instead we typically place any UI transact into a helper function
   that calls `transact!`. You could render your React components to a dom fragment and trigger DOM events with mocking
   in place, but in practice we find that the helper function approach is just less fuss, and it is good enough. You
-  don't end up with absolute proof things are hooked up right, but close enough.
+  don't end up with absolute proof things are hooked up right, but it is close enough.
 
   So, let's say you've defined the following mutation:
 
   ```
-  (defmethod m/mutate 'a-mutation [{:keys [state] :as env} k params]
-    {:action (fn []
-               (swap! state assoc-in [:tbl 4] {:id 4 :name \"Thing\"}))})
+  (defmethod m/mutate 'soln/add-user [{:keys [state ast] :as env} k {:keys [id name] :as params}]
+       { :action (fn [] (swap! state assoc-in [:users/by-id id] {:db/id id :user/name name :user/age 1}))})
   ```
 
-  and your UI uses this function to invoke it:
+  and you've create the following UI helper function:
 
   ```
-  (defn do-a-mutation [comp]
-    (om/transact! comp '[(a-mutation)]))
+  (defn add-user [comp name]
+       (om/transact! comp `[(soln/add-user ~{:id (om/tempid) :name name})]))
   ```
 
-  #### Exercise 6
-
-  Write a test that verifies the UI helper requests the correct mutation
-
-  Make sure you're running the test build in figwheel (`-Dtest`) and have the specification open
-  [http://localhost:3449/test.html](http://localhost:3449/test.html).
-  You should see a grey area in the spec for the testing-tutorial-spec. This is because all assertions are commented out.
-
-  For sharing between client and server, we write our tests in a `.cljc` file. Open `testing_tutorial_spec.cljc`
-  and add a data structure for our expected results:
+  The assumption is that somewhere in your UI you have:
 
   ```
-  (def do-a-mutation-protocol
-    { :ui-tx '[(a-mutation)] ; what the UI should send
-    })
+  (dom/button #js {:onClick #(add-user ...)} \"Add User\")
   ```
 
-  Your first test would be to prove that the UI will cause a given mutation to occur. Add this specification
-  to the test and verify it passes in the browser outline:
+  So, how do we test this?
+
+  The first step is manual:
 
   ```
-  (specification \"Doing a mutation\"
-    (behavior \"generates the correct ui transaction\"
-      (when-mocking
-        (om/transact! c tx) => (is (= tx (-> do-a-mutation-protocol :ui-tx)))
+  ;; Define a data structure that can hold the bits of protocol
+  (def add-user-protocol {:ui-tx            '[(soln/add-user {:id :om.tempid/new-user :name \"Orin\"})]})
 
-        (do-a-mutation nil))))
+  (behavior \"generates the correct ui transaction\"
+     (when-mocking
+        (om/tempid) => :om.tempid/new-user
+        (om/transact! c tx) => (is (= tx (-> add-user-protocol :ui-tx)))
+
+        (add-user :some-component \"Orin\")))
   ```
 
-  Now modify the helper function and see that the test fails. This seems like a trivial test, but it helps glue
-  together the proof that a mutation is tested all the way through the full stack. The next step **assumes** that the
-  UI will really generate the given `:ui-tx`, so if that were wrong the whole chain would be a false positive.
+  Now we've shown that the UI generates the expected transaction. Our next step is to see that this tx has the proper
+  client-side effect.
 
   ### Testing that the UI Optimistic Update is correct
 
-  The next thing you'd like to do is ensure that the mutation does the correct optimistic update. Since this could
-  involve changing all sorts of things in a map at arbitrary nesting levels, and should technically run as
+  Let's ensure that the mutation does the correct optimistic update. Since this could
+  involve changing all sorts of things in the state map at arbitrary nesting levels, and should technically run as
   a partial integration test through the internal parser, Untangled provides a nice helper function
   that does all of this for you.
 
@@ -461,7 +470,7 @@
   The data for an optimistic update is stored as a delta, formatted as follows:
 
   ```
-  {:optimistic-delta { [key path to data] expected-value }
+  {:optimistic-delta { [key-path-to-data] expected-value }
    ...other test data... }
   ```
 
@@ -480,62 +489,84 @@
   - Require `untangled.client.protocol-support` (perhaps as `ps`)
   - Call `(ps/check-optimistic-delta protocol-def-map)` within a specification
 
+  So, for our example from the previous section, which was:
+
+  ```
+  (defmethod m/mutate 'soln/add-user [{:keys [state ast] :as env} k {:keys [id name] :as params}]
+       { :action (fn [] (swap! state assoc-in [:users/by-id id] {:db/id id :user/name name :user/age 1}))})
+  ```
+
+  We'd add the following to our protocol:
+
+  ```
+  (def add-user-protocol
+    {:ui-tx            '[(soln/add-user {:id :om.tempid/new-user :name \"Orin\"})]
+
+     :initial-ui-state {:users/by-id {}} ; <-- starting app state
+
+     ; expected (spot-checks) of changes made to local app state by the mutation:
+     :optimistic-delta {[:users/by-id :om.tempid/new-user :user/name] \"Orin\"
+                        [:users/by-id :om.tempid/new-user :user/age]  1}
+    })
+  ```
+
+  and our test is now just:
+
+  ```
+  (specification \"Adding a user\"
+     (behavior \"generates the correct ui transaction\"
+        (when-mocking
+           (om/tempid) => :om.tempid/new-user
+           (om/transact! c tx) => (is (= tx (-> add-user-protocol :ui-tx)))
+
+           (add-user :some-component \"Orin\")))
+     (ps/check-optimistic-update add-user-protocol)) ;; <-- added this line
+  ```
+
   The `check-optimistic-delta` uses the `ui-tx` entry to know what to attempt, and the mutations are already
-  installed. So, it makes up an app state (which can be based on `initial-ui-state`, if supplied).
-
-  #### Exercise 7
-
-  Check the optimistic update
-
-  1. Add two entries to an `:optimistic-delta` map in the `do-a-mutation-protocol` map.
-  2. Add a `initial-ui-state` to the protocol with: `{ :tbl { 4 {:id 4 :name \"Boo\"} } }` (pretend there was something in the table)
-  3. Run `check-optimistic-delta` within the cljs specification, passing it the protocol data.
-
-  The test should pass. Note that the checker automatically adds items to the specification about what it tested.
-
-  For sanity, comment out the body of the mutation function. The test should fail (you should see that the original
-  object is still there via the delta).
+  installed. So, it makes up an app state (which is empty, or `initial-ui-state` if supplied).
 
   ### Testing how a mutation talks to the server
 
-  Mutations can trigger a remote mutation (and can modify the original UI transaction). For example, say
-  `(a-mutation)` is a perfect thing to say to the UI, but when sending it to the server you must add in
-  a parameter (e.g. reference ID, auth info, etc.).
+  Mutations can trigger a remote mutation (which can modify the original UI transaction). For example, say
+  `(add-user)` is a perfect thing to say to the UI, but when sending it to the server you must add in
+  a parameter (e.g. a default user's age).
 
-  #### Exercise 8
-
-  Check that a mutation is sent to the server.
-
-  This test is again mostly automated for you. Simply call `(ps/check-server-tx do-a-mutation-protocol)` after
-  setting `:server-tx value` in your protocol.
-
-   NOTE: This test will fail at first.
-
-  - Add `:server-tx '[(a-mutation)]` to your protocol map
-  - Add a call to `check-server-tx` within your specification (again, it embeds its own behaviors/assertions)
-
-  Save, and you should see the test complain that nothing was supposed to go to the server. This is correct! Your
-  mutation does not specify a remote is to be used!
-
-  Add `:remote true` to your return value from `a-mutation`. The test should now pass.
-
-  #### Exercise 9
-
-  Test a mutations that modifies the ui-tx.
-
-  As you probably already know, it is possible to modify the mutation sent to the server by giving an AST
-  as the value of `:remote` instead of `true`. Add a parameter to the transaction by modifying the mutation to:
+  The `:remote` of a mutation can return `true` (to send the UI mutation) or a modified mutation AST to
+  send a modified mutation. Parameters are the easiest thing to morph:
 
   ```
-   (defmethod m/mutate 'a-mutation [{:keys [state ast] :as env} k params]
-     {:remote (assoc ast :params {:x 1})
-      :action (fn []
-                (swap! state assoc-in [:tbl 4] {:id 4 :name \"Thing\"}))})
+  (defmethod m/mutate 'soln/add-user [{:keys [state ast] :as env} k {:keys [id name] :as params}]
+       {:remote (assoc ast :params (assoc params :age 1)) ; <-- add :age to the parameters
+        :action (fn [] (swap! state assoc-in [:users/by-id id] {:db/id id :user/name name :user/age 1}))})
   ```
 
-  Your test should now be failing again. Change the `:server-tx` value in the protocol to fix this.
+  To add this to the tests, we add one more entry to our protocol and call `ps/check-server-tx`:
 
-  ### Testing the the server transaction does the correct thing on the server (Currently assumes Datomic)
+  ```
+  (def add-user-protocol
+    {:ui-tx            '[(soln/add-user {:id :om.tempid/new-user :name \"Orin\"})]
+
+     ; What should go across the network:
+     :server-tx        '[(soln/add-user {:id :om.tempid/new-user :name \"Orin\" :age 1})]
+
+     ; ... as before
+    })
+  ```
+
+  ```
+  (specification \"Adding a user\"
+     (behavior \"generates the correct ui transaction\"
+        (when-mocking
+           (om/tempid) => :om.tempid/new-user
+           (om/transact! c tx) => (is (= tx (-> add-user-protocol :ui-tx)))
+
+           (add-user :some-component \"Orin\")))
+     (ps/check-optimistic-update add-user-protocol)
+     (ps/check-server-tx add-user-protocol)) ;; <-- added this line
+  ```
+
+  ### Testing the the server transaction does the correct thing on the server (Only supports Datomic)
 
   Now we've verified that the UI will invoke the right mutation, the mutation will do the correct optimistic update,
   the mutation will properly modify and generate a server transaction. We've reached the plumbing (network), and we'll
@@ -544,9 +575,9 @@
   Once it is on the network, we can assume it reached the server (these are happy-path tests). Now you're interested
   in proving that the server code works.
 
-  Untangled has you covered here too!
+  Untangled can help here too!
 
-  Only one function call is needed (with some setup): `check-response-to-client`. It supports checking:
+  Only one function call is needed (with some setup): `ps/check-response-to-client`. It supports checking:
 
   - That the `:server-tx` runs without error
   - That `:response` in the protocol data matches the real response of the `:server-tx`
@@ -555,7 +586,8 @@
 
   The setup allows you to seed an in-memory test database for the transaction to run against.
 
-  TODO: Finish writing this section...
+  **NOTE:** The documentation here is incomplete, as we're still trying to find a simpler way to help you set up
+  these tests. All of the helper utilities exist to do it, but they are not easy enough to use.
 
   ### Testing that the server response is properly understood by the client
 
@@ -577,29 +609,6 @@
   You can use this method to test simple query response normalization, but in that case you must use a `server-tx` that
   comes from UI components (or normalization won't work).
 
-  TODO: Add exercise...
-
-  ### Handling temporary IDs in protocol tests
-
-  The protocol testing helpers completely understand temporary IDs, and make it really easy to use.
-
-  The basic features are:
-
-  - Anywhere you use a keyword namespaced to `:om.tempid/` (client or server side of the protocol), then
-  the protocol helpers will translate them to real Om tempids during the testing
-  (e.g. ensuring type checks for Om tempids will work in your real code).
-  - Anywhere you use a keyword namespaced to `:datomic.id/` (client or server side of the protocol)
-  the helpers will treat them correctly (e.g. on the server side it will join them up to seeded data correctly)
-
-  So, in all of the above tests you can use these namespaced keywords to simulate Om temporary and seeded data IDs.
-
-
-  # Solutions
-
-  The solutions to the pure UI exercises are in `app.exercises-solutions-spec` namespace in the client source.
-
-  The solutions to the full-stack protocol tests are in the `test/shared/app` folder as the `testing-tutorial-solutions-spec`
-  namespace.
   ")
 
 

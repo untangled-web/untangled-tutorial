@@ -4,6 +4,9 @@
     [#?(:cljs untangled.client.protocol-support :clj untangled.server.protocol-support) :as ps]
     [#?(:cljs cljs.test :clj clojure.test) :refer-macros [is]]
     #?(:cljs [untangled.client.mutations :as m])
+    #?(:clj [untangled.datomic.test-helpers :as helper])
+    #?(:clj [untangled.server.core :as server])
+    #?(:clj [app.demo-server :as demo])
     #?(:cljs [om.next :as om])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -12,30 +15,38 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; This is the declaration of the elements of data that are to be verified by the tests.
-(def do-soln-mutation-protocol
-  {:ui-tx            '[(soln-mutation)]
-   :server-tx        '[(soln-mutation {:x 1})]
-   :initial-ui-state {:tbl {4 {:id 4 :name "Other"}}}
-   :optimistic-delta {[:tbl 4 :name] "Thing"
-                      [:tbl 4 :id]   4}
+(def add-user-protocol
+  {:ui-tx            '[(soln/add-user {:id :om.tempid/new-user :name "Orin"})]
+   :server-tx        '[(soln/add-user {:id :om.tempid/new-user :name "Orin" :age 1})]
+   :initial-ui-state {:users/by-id {}}
+   :optimistic-delta {[:users/by-id :om.tempid/new-user :user/name] "Orin"
+                      [:users/by-id :om.tempid/new-user :user/age]  1}
    })
 
 #?(:cljs
-   (defmethod m/mutate 'soln-mutation [{:keys [state ast] :as env} k params]
-     {:remote (assoc ast :params {:x 1})
+   (defmethod m/mutate 'soln/add-user [{:keys [state ast] :as env} k {:keys [id name] :as params}]
+     {:remote (assoc ast :params (assoc params :age 1))
       :action (fn []
-                (swap! state assoc-in [:tbl 4] {:id 4 :name "Thing"}))}))
+                (swap! state assoc-in [:users/by-id id] {:db/id id :user/name name :user/age 1}))}))
 
 #?(:cljs
-   (defn do-soln-mutation [comp]
-     (om/transact! comp '[(soln-mutation)])))
+   (defn add-user [comp name]
+     (om/transact! comp `[(soln/add-user ~{:id (om/tempid) :name name})])))
 
 #?(:cljs
-   (specification "UI helper do-soln-mutation"
-                  (behavior "generates the correct ui transaction"
-                            (when-mocking
-                              (om/transact! c tx) => (is (= tx (-> do-soln-mutation-protocol :ui-tx)))
+   (specification "Adding a user"
+     (behavior "generates the correct ui transaction"
+       (when-mocking
+         (om/tempid) => :om.tempid/new-user
+         (om/transact! c tx) => (is (= tx (-> add-user-protocol :ui-tx)))
 
-                              (do-soln-mutation nil)))
-                  (ps/check-optimistic-update do-soln-mutation-protocol)
-                  (ps/check-server-tx do-soln-mutation-protocol)))
+         (add-user :some-component "Orin")))
+     (ps/check-optimistic-update add-user-protocol)
+     (ps/check-server-tx add-user-protocol)))
+
+#?(:clj
+   (defn user-seed [connection]
+     (helper/link-and-load-seed-data connection
+       [{:db/id :datomic.id/joe :user/name "Joe" :user/age 44}])))
+
+; TODO: Server protocol checks are too hard to write.
