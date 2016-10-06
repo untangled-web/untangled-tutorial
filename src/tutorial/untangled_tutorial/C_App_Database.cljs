@@ -6,11 +6,6 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [cljs.reader :as r]))
 
-; TODO: A graphic of the linkage within the example database to show
-; linkage graphically.
-; TODO: Mention that initial database is easily taken care of by InitialAppState which is covered later
-; TODO: Pointer from ref guide, and improve examples so that a graphic is "complete"
-
 (defcard-doc
   "
   # App database
@@ -26,8 +21,7 @@
 
   Any non-trivial UI needs data. Many non-trivial UIs need a lot of data. React UIs need data to
   be in a tree-like form (parents pass properties down to children). When you combine these facts
-  with ClojureScript and immutabe data structures you end up with some interesting
-  challenges.
+  with ClojureScript and immutable data structures you end up with some interesting challenges.
 
   The most important one is this: What do we do when we want to show the same information in
   two different UI components (e.g. a Table and a Chart of some performance statistics)?
@@ -100,6 +94,8 @@
   The top-level key `:list/people` is a made-up keyword for my list of people that
   I'm interested in (e.g. currently on the UI). It points to Joe and Sally.
 
+  <img src=\"svg/app-database-diagram.svg\"/>
+
   The database table keyed at `:people/by-id` stores the real object, which cross-reference each
   other. Note that this particular graph (as you might expect) has a loop in it (Joe is married
   to Sally who is married to Joe ...).
@@ -151,12 +147,21 @@
   No. You do not need to build normalized graph databases. Untangled can do that for you. You simply
   create the tree that the UI wants to see, and then hand it to Untangled and it will use
   the UI query to reformat that data into the internal database format. We'll see more
-  on that after we talk about queries.
+  on that after we talk about queries. It is important to note that if you pass a tree of data to
+  Untangled as initial state, it shouldn't be in an atom. If your initial state is in an atom, then
+  it needs to be normalized.
 
   As you get to more complicated applications you may chose to use Om's helper function `tree->db`
   to auto-normalize different pieces of data and merge them togther to for a database. We have
   also found hand-generating normalized state really isn't difficult, and is easier
   for some to reason about.
+
+  Untangled also provides a protocol called `InitialAppState`. This can be attached to each component
+  in the same manner as `om.next/IQuery`.  The benefit is that you don't have to think as much about
+  normalization or building a map of initial app state.  You simply define it with regards to the
+  component, and compose over child components. This greatly complements the query concepts and improves
+  local reasonsing with regard to initial state and component composition. We Love it, and we think you
+  will too. We will discuss the protocol more in the coming chapters.
 
   You should definitely do the [database exercises](#!/untangled_tutorial.C_App_Database_Exercises).
   ")
