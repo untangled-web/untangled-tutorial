@@ -273,8 +273,7 @@
   in the above transaction, we must use Clojure syntax quoting so that we can list an abstract mutation (which looks like
   a function call, but is not) and parameters that themselves are derived from the environment (in this case
   an id). If you're not a Clojure(script) programmer, we understand that the above expression looks a little scary. The
-  '`' means 'treat the following thing literally', and the '~' means 'don't treat this thing literally'. It's a way
-  of keeping the compiler from treating the increment as a function while still being able to embed `id` from the local
+  '&grave;' means 'treat the following thing literally', and the '~' means 'don't treat this thing literally'. It's a way of keeping the compiler from treating the increment as a function while still being able to embed `id` from the local
   execution environment.
 
   The concrete implementation of the mutation on the model side looks like this:
