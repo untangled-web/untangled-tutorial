@@ -333,6 +333,8 @@
   (dc/mkdn-pprint-source Counter)
   "
 
+  (the `^:once` is helper metadata that ensures correct operation of development-time hot code reload)
+
   It looks a bit like a `defrecord` implementing protocols. Here is a description of the parts:
 
   - InitialAppState : Represents how to make an instance of the counter in the browser database. Parameters are supported

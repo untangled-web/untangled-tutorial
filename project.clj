@@ -14,11 +14,11 @@
                  [lein-doo "0.1.7" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/core.cache "0.6.5"]
-                 [navis/untangled-client "0.5.6"]
+                 [navis/untangled-client "0.5.7"]
                  [cljsjs/d3 "3.5.7-1"]
-                 [navis/untangled-server "0.6.1"]
-                 [navis/untangled-spec "0.3.8" :scope "test"]
-                 [navis/untangled-datomic "0.4.9"]]
+                 [navis/untangled-server "0.6.2"]
+                 [navis/untangled-spec "0.3.9" :scope "test"]
+                 [navis/untangled-datomic "0.4.11"]]
 
   ; server source paths
   :source-paths ["src/server" "src/shared" "test/server" "test/shared" "src/tutorial"]

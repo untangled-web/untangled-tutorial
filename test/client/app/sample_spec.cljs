@@ -3,8 +3,6 @@
     [untangled-spec.core :refer-macros [specification behavior when-mocking provided assertions component with-timeline async tick]]
     [cljs.test :refer-macros [is]]))
 
-
-(def a (atom 0))
 (specification "A Sample Specificaation"
                (behavior "Has some items"
                          (assertions

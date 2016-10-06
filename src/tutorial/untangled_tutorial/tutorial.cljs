@@ -24,7 +24,4 @@
     untangled-tutorial.Z-Query-Quoting
     [devtools.core :as devtools]))
 
-(defonce devtools-installed
-         (do (devtools/enable-feature! :sanity-hints)
-             (devtools/install!)
-             true))
+(defonce devtools-installed (devtools/install!))
