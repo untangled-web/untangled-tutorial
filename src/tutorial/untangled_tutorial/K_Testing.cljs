@@ -89,6 +89,8 @@
   that tests if `2 * 2 = 4`. Remember to update `tests-to-run`. You can use the `ns` preamble from `sample-spec` to
   get the various requires correct.
 
+  Solutions are in `exercises-solutions-spec`.
+
   ## Assertions
 
   Special arrows:
@@ -103,6 +105,8 @@
 
   Create an additonal spec (in the same file as before) that uses the `=fn=>` arrow to check that an expression results
   in an even value.
+
+  Solutions are in `exercises-solutions-spec`.
 
   ## Mocking
 
@@ -193,6 +197,8 @@
   **Bonus**: Change your mocking to use =1x=> arrows for `sum-sq` to return different, but predictable, values for
   each call.
 
+  Solutions are in `exercises-solutions-spec`.
+
   ## Using the original function (Spying)
 
   If you want to spy on a function, you can use mocking with a pre-capture of the function:
@@ -214,6 +220,8 @@
   but *really* allows the original `sum-sq` to generate the real value. Add assertions that talk about how every result
   is positive, even when the pairs contain negatives. The macro `provided` is the same as `when-mocking`, but allows you
   to add a string to the output (and nest the outline a level deeper) to describe what the mocking is proving.
+
+  Solutions are in `exercises-solutions-spec`.
 
   ## Timeline testing
 
