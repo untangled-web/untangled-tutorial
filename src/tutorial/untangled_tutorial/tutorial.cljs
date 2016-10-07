@@ -21,6 +21,7 @@
     untangled-tutorial.K-Testing
     untangled-tutorial.M30-Advanced-Mutation
     untangled-tutorial.M40-Advanced-Server-Topics
+    untangled-tutorial.Z-Further-Reading
     untangled-tutorial.Z-Glossary
     untangled-tutorial.Z-Query-Quoting
     [devtools.core :as devtools]))
