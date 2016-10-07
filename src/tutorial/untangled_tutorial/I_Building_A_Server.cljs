@@ -11,20 +11,13 @@
             [om.next.impl.parser :as p]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
-; TODO: (advanced?) config, config files, command line config, env vars...should this just be a ref guide ptr?
 ; TODO: make external refs (e.g. to ss component) links
-; TODO: Extra Routes (bidi) and hooks (using component to add hooks vs. using ring wrappers *directly* in a handler function (e.g. bidi route))
-; TODO: (advanced?) Client headers? Cookies? related stuff to security.
-
 
 (defcard-doc
   "
   # Building the server
 
-  **NOTE: This section is in progress, and is being re-worked from the Om-Tutorial...See untangled-todomvc for
-  a working complete example.**
-
-  The pre-build server components for Untangled use Stuart Seirra's Component library. The server has no
+  The pre-built server components for Untangled use Stuart Seirra's Component library. The server has no
   global state except for a debugging atom that holds the entire system. The tutorial project has already
   been set up with a basic server, and we'll cover what's in there, and what you need to write.
 
@@ -118,7 +111,7 @@
   Learning how to build these parts is relatively simple, and is the only thing you need
   to know to process all possible communications from a client.
 
-  Om parsers require two things: A function to process Reads, and a function to process Mutations.
+  Om parsers require two things: A function to process reads, and a function to process mutations.
   These are completely open to your choice of implementation. They simply need to be functions
   with the signature:
 
@@ -153,7 +146,7 @@
   ")
 
 (defcard om-parser
-         "This card will run an Om parser on an arbitrary query, record the calls to the read emitter,
+  "This card will run an Om parser on an arbitrary query, record the calls to the read emitter,
           and show the trace of those calls in order. Feel free to look at the source of this card.
 
           Essentially, it creates an Om parser:
@@ -180,31 +173,31 @@
           - `[:a {:b [:c]}]` (note that the AST is recursively built, but only the top keys are actually parsed to trigger reads)
           - `[(:a { :x 1 })]`  (note the value of params)
           "
-         (fn [state _]
-           (let [{:keys [v error]} @state
-                 trace (atom [])
-                 read-tracking (fn [env k params]
-                                 (swap! trace conj {:env          (assoc env :parser :function-elided)
-                                                    :dispatch-key k
-                                                    :params       params}))
-                 parser (om/parser {:read read-tracking})]
-             (dom/div nil
-                      (when error
-                        (dom/div nil (str error)))
-                      (dom/input #js {:type     "text"
-                                      :value    v
-                                      :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
-                      (dom/button #js {:onClick #(try
-                                                  (reset! trace [])
-                                                  (swap! state assoc :error nil)
-                                                  (parser {} (r/read-string v))
-                                                  (swap! state assoc :result @trace)
-                                                  (catch js/Error e (swap! state assoc :error e))
-                                                  )} "Run Parser")
-                      (dom/h4 nil "Parsing Trace")
-                      (html-edn (:result @state)))))
-         {}
-         {:inspect-data false})
+  (fn [state _]
+    (let [{:keys [v error]} @state
+          trace (atom [])
+          read-tracking (fn [env k params]
+                          (swap! trace conj {:env          (assoc env :parser :function-elided)
+                                             :dispatch-key k
+                                             :params       params}))
+          parser (om/parser {:read read-tracking})]
+      (dom/div nil
+        (when error
+          (dom/div nil (str error)))
+        (dom/input #js {:type     "text"
+                        :value    v
+                        :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
+        (dom/button #js {:onClick #(try
+                                    (reset! trace [])
+                                    (swap! state assoc :error nil)
+                                    (parser {} (r/read-string v))
+                                    (swap! state assoc :result @trace)
+                                    (catch js/Error e (swap! state assoc :error e))
+                                    )} "Run Parser")
+        (dom/h4 nil "Parsing Trace")
+        (html-edn (:result @state)))))
+  {}
+  {:inspect-data false})
 
 (defcard-doc
   "
@@ -242,39 +235,39 @@
   ")
 
 (defcard parser-read-trace
-         "This card is similar to the prior card, but it has a read function that just records what keys it was
-         triggered for. Give it an arbitrary legal query, and see what happens.
+  "This card is similar to the prior card, but it has a read function that just records what keys it was
+  triggered for. Give it an arbitrary legal query, and see what happens.
 
-         Some interesting queries:
+  Some interesting queries:
 
-         - `[:a :b :c]`
-         - `[:a {:b [:x :y]} :c]`
-         - `[{:a {:b {:c [:x :y]}}}]`
+  - `[:a :b :c]`
+  - `[:a {:b [:x :y]} :c]`
+  - `[{:a {:b {:c [:x :y]}}}]`
 
-         "
-         (fn [state _]
-           (let [{:keys [v error]} @state
-                 trace (atom [])
-                 read-tracking (fn [env k params]
-                                 (swap! trace conj {:read-called-with-key k}))
-                 parser (om/parser {:read read-tracking})]
-             (dom/div nil
-                      (when error
-                        (dom/div nil (str error)))
-                      (dom/input #js {:type     "text"
-                                      :value    v
-                                      :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
-                      (dom/button #js {:onClick #(try
-                                                  (reset! trace [])
-                                                  (swap! state assoc :error nil)
-                                                  (parser {} (r/read-string v))
-                                                  (swap! state assoc :result @trace)
-                                                  (catch js/Error e (swap! state assoc :error e))
-                                                  )} "Run Parser")
-                      (dom/h4 nil "Parsing Trace")
-                      (html-edn (:result @state)))))
-         {}
-         {:inspect-data false})
+  "
+  (fn [state _]
+    (let [{:keys [v error]} @state
+          trace (atom [])
+          read-tracking (fn [env k params]
+                          (swap! trace conj {:read-called-with-key k}))
+          parser (om/parser {:read read-tracking})]
+      (dom/div nil
+        (when error
+          (dom/div nil (str error)))
+        (dom/input #js {:type     "text"
+                        :value    v
+                        :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
+        (dom/button #js {:onClick #(try
+                                    (reset! trace [])
+                                    (swap! state assoc :error nil)
+                                    (parser {} (r/read-string v))
+                                    (swap! state assoc :result @trace)
+                                    (catch js/Error e (swap! state assoc :error e))
+                                    )} "Run Parser")
+        (dom/h4 nil "Parsing Trace")
+        (html-edn (:result @state)))))
+  {}
+  {:inspect-data false})
 
 (defcard-doc
   "
@@ -372,35 +365,35 @@
   (fn [state _]
     (let [{:keys [v error]} @state]
       (dom/div nil
-               (dom/input #js {:type     "text"
-                               :value    v
-                               :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
-               (dom/button #js {:onClick #(try
-                                           (swap! state assoc :error "" :result (parser {:state (atom (:db @state))} (r/read-string v)))
-                                           (catch js/Error e (swap! state assoc :error e))
-                                           )} "Run Parser")
-               (when error
-                 (dom/div nil (str error)))
-               (dom/h4 nil "Query Result")
-               (html-edn (:result @state))
-               (dom/h4 nil "Database")
-               (html-edn (:db @state))))))
+        (dom/input #js {:type     "text"
+                        :value    v
+                        :onChange (fn [evt] (swap! state assoc :v (.. evt -target -value)))})
+        (dom/button #js {:onClick #(try
+                                    (swap! state assoc :error "" :result (parser {:state (atom (:db @state))} (r/read-string v)))
+                                    (catch js/Error e (swap! state assoc :error e))
+                                    )} "Run Parser")
+        (when error
+          (dom/div nil (str error)))
+        (dom/h4 nil "Query Result")
+        (html-edn (:result @state))
+        (dom/h4 nil "Database")
+        (html-edn (:db @state))))))
 
 (defcard property-read-for-the-meaning-of-life-the-universe-and-everything
-         "This card is using the parser/read pairing shown above (the read returns
-         the value 42 no matter what it is asked for). Run any query you
-         want in it, and check out the answer.
+  "This card is using the parser/read pairing shown above (the read returns
+  the value 42 no matter what it is asked for). Run any query you
+  want in it, and check out the answer.
 
-         This card just runs `(parser-42 {} your-query)` and reports the result.
+  This card just runs `(parser-42 {} your-query)` and reports the result.
 
-         Some examples to try:
+  Some examples to try:
 
-         - `[:a :b :c]`
-         - `[:what-is-6-x-7]`
-         - `[{:a {:b {:c {:d [:e]}}}}]` (yes, there is only one answer)
-         "
-         (parser-tester parser-42)
-         {:db {}})
+  - `[:a :b :c]`
+  - `[:what-is-6-x-7]`
+  - `[{:a {:b {:c {:d [:e]}}}}]` (yes, there is only one answer)
+  "
+  (parser-tester parser-42)
+  {:db {}})
 
 (defn property-read [{:keys [state]} key params] {:value (get @state key :not-found)})
 (def property-parser (om/parser {:read property-read}))
@@ -422,20 +415,20 @@
   ")
 
 (defcard trivial-property-reader
-         "This card is using the `property-read` function above in a parser.
+  "This card is using the `property-read` function above in a parser.
 
-         The database we're emulating is shown at the bottom of the card, after the
-         result.
+  The database we're emulating is shown at the bottom of the card, after the
+  result.
 
-         Run some queries and see what you get. Some suggestions:
+  Run some queries and see what you get. Some suggestions:
 
-         - `[:a :b :c]`
-         - `[:what-is-6-x-7]`
-         - `[{:a {:b {:c {:d [:e]}}}}]` (yes, there is only one answer)
-         "
-         (parser-tester property-parser)
-         {:db {:a 1 :b 2 :c 99}}
-         {:inspect-data true})
+  - `[:a :b :c]`
+  - `[:what-is-6-x-7]`
+  - `[{:a {:b {:c {:d [:e]}}}}]` (yes, there is only one answer)
+  "
+  (parser-tester property-parser)
+  {:db {:a 1 :b 2 :c 99}}
+  {:inspect-data true})
 
 (def flat-app-state (atom {:a 1 :user/name "Sam" :c 99}))
 

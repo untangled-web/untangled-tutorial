@@ -54,11 +54,20 @@
   :cljsbuild {:builds [{:id           "test"
                         :figwheel     true
                         :source-paths ["src/shared" "test/client" "test/shared"]
-                        :compiler     {:main                 app.suite
-                                       :asset-path           "js/specs"
-                                       :output-to            "resources/public/js/specs.js"
-                                       :output-dir           "resources/public/js/specs"
-                                       :recompile-dependents true
+                        :compiler     {:main           app.suite
+                                       :asset-path     "js/specs"
+                                       :output-to      "resources/public/js/specs.js"
+                                       :output-dir     "resources/public/js/specs"
+                                       :parallel-build true
+                                       }}
+                       {:id           "app"
+                        :figwheel     true
+                        :source-paths ["src/exercise-app" "dev/client"]
+                        :compiler     {:main           cljs.user
+                                       :asset-path     "js/exercise-app"
+                                       :output-to      "resources/public/js/exercise-app.js"
+                                       :output-dir     "resources/public/js/exercise-app"
+                                       :parallel-build true
                                        }}
                        {:id           "automated-tests"
                         :source-paths ["test/shared" "test/client" "src/shared"]
@@ -72,19 +81,17 @@
                         :figwheel     {:devcards true}
                         :source-paths ["src/tutorial" "src/shared"]
                         :compiler     {
-                                       :main                 untangled-tutorial.tutorial
-                                       :source-map-timestamp true
-                                       :asset-path           "js/tutorial"
-                                       :output-to            "resources/public/js/tutorial.js"
-                                       :output-dir           "resources/public/js/tutorial"
-                                       :recompile-dependents true
-                                       :verbose              false
-                                       :foreign-libs         [{:provides ["cljsjs.codemirror.addons.closebrackets"]
-                                                               :requires ["cljsjs.codemirror"]
-                                                               :file     "resources/public/codemirror/closebrackets-min.js"}
-                                                              {:provides ["cljsjs.codemirror.addons.matchbrackets"]
-                                                               :requires ["cljsjs.codemirror"]
-                                                               :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
+                                       :main           untangled-tutorial.tutorial
+                                       :asset-path     "js/tutorial"
+                                       :output-to      "resources/public/js/tutorial.js"
+                                       :output-dir     "resources/public/js/tutorial"
+                                       :parallel-build true
+                                       :foreign-libs   [{:provides ["cljsjs.codemirror.addons.closebrackets"]
+                                                         :requires ["cljsjs.codemirror"]
+                                                         :file     "resources/public/codemirror/closebrackets-min.js"}
+                                                        {:provides ["cljsjs.codemirror.addons.matchbrackets"]
+                                                         :requires ["cljsjs.codemirror"]
+                                                         :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
                        {:id           "pages"
                         :source-paths ["src/tutorial" "src/pages" "src/shared"]
                         :compiler     {
@@ -109,9 +116,9 @@
                                   [binaryage/devtools "0.6.1"]
                                   [cljsjs/codemirror "5.8.0-0"]]
                    :source-paths ["dev/server" "src/server" "src/shared"]
-                   :repl-options {:init-ns user
+                   :repl-options {:init-ns          user
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
-                                  :port    7001}
+                                  :port             7001}
                    }
              }
   )

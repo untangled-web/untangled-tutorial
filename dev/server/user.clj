@@ -7,6 +7,7 @@
     [com.stuartsierra.component :as component]
     [datomic-helpers :refer [to-transaction to-schema-transaction ext]]
     [datomic.api :as d]
+    [app.system :as app]
     [figwheel-sidecar.system :as sys]
     [taoensso.timbre :refer [info set-level!]]
     [untangled.datomic.schema :refer [dump-schema dump-entity]]))
@@ -29,3 +30,34 @@
      (println "STARTING FIGWHEEL ON BUILDS: " build-ids)
      (swap! figwheel component/start)
      (sys/cljs-repl (:figwheel-system @figwheel)))))
+
+;;SERVER
+
+(set-refresh-dirs "src/server" "specs/server" "dev/server")
+
+(def system (atom nil))
+
+(set-level! :info)
+
+(defn init
+  "Create a web server from configurations. Use `start` to start it."
+  []
+  (reset! system (app/make-system)))
+
+(defn start "Start (an already initialized) web server." [] (swap! system component/start))
+
+(defn stop "Stop the running web server. Is a no-op if the server is already stopped" []
+  (when @system
+    (swap! system component/stop)
+    (reset! system nil)))
+
+(defn go "Load the overall web server system and start it." []
+  (init)
+  (start))
+
+(defn reset
+  "Stop the web server, refresh all namespace source code from disk, then restart the web server."
+  []
+  (stop)
+  (refresh :after 'user/go))
+
