@@ -1,11 +1,13 @@
 (ns untangled-tutorial.F-Untangled-Initial-App-State
   (:require-macros
+    [untangled-tutorial.tutmacros :refer [untangled-app]]
     [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [untangled.client.core :as uc]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
-            [cljs.reader :as r]))
+            [cljs.reader :as r]
+            [untangled.client.mutations :as m]))
 
 (defui Child
   static uc/InitialAppState
@@ -17,19 +19,20 @@
   Object
   (render [this]
     (let [{:keys [x]} (om/props this)]
-      (dom/p nil (str "Child: " x)))))
+      (dom/p nil (str "Child x: " x)))))
 
 (def ui-child (om/factory Child))
+
 (defui Root
   static uc/InitialAppState
-  (initial-state [this params] [:r 0 {:child (uc/initial-state Child {})}])
+  (initial-state [this params] {:root-prop 42 :child (uc/initial-state Child {})})
   static om/IQuery
-  (query [this] [:r {:child (om/get-query Child)}])
+  (query [this] [:ui/react-key :root-prop {:child (om/get-query Child)}])
   Object
   (render [this]
-    (let [{:keys [r child]} (om/props this)]
-      (dom/div nil
-        (str "Root: " r)
+    (let [{:keys [ui/react-key root-prop child]} (om/props this)]
+      (dom/div #js {:style #js {:border "1px solid black"} :key react-key}
+        (str "Root prop: " root-prop)
         (ui-child child)))))
 
 (defcard-doc
@@ -80,7 +83,15 @@
   1. Pull the initial state and use that as base app state
   2. Ensure that it is normalized by Om
   3. Will do a post-initialization step to ensure alternate branches of to-one unions are initialized.
+  ")
 
+(defcard sample-app
+  "This card shows the app from above, actively rendered. The resulting normalized app database is shown below the UI."
+  (untangled-app Root)
+  {}
+  {:inspect-data true})
+
+(defcard-doc "
   ## Union Initialization
 
   The last step mentioned in the prior section is particularly handy. In stock Om you to need to do some special backflips in order
