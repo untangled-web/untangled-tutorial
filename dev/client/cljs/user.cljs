@@ -10,8 +10,6 @@
 (enable-console-print!)
 (devtools/install!)
 
-(swap! ui/app core/mount ui/Root "app")
-
 (defn app-state [] (om/app-state (:reconciler @ui/app)))
 
 (def log-app-state (partial util/log-app-state ui/app))
