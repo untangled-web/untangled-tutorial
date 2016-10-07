@@ -1,11 +1,16 @@
 (ns untangled-tutorial.F-Untangled-Initial-App-State
   (:require-macros
+    [untangled-tutorial.tutmacros :refer [untangled-app]]
     [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [untangled.client.core :as uc]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
-            [cljs.reader :as r]))
+            [cljs.reader :as r]
+            [untangled.client.mutations :as m]))
+
+(defmethod m/mutate 'doit [{:keys [state]} k p]
+  {:action (fn [] (swap! state update-in [:child/by-id 1 :x] inc))})
 
 (defui Child
   static uc/InitialAppState
@@ -17,12 +22,14 @@
   Object
   (render [this]
     (let [{:keys [x]} (om/props this)]
-      (dom/p nil (str "Child: " x)))))
+      (dom/p nil (str "Child: " x)
+             (dom/button #js {:onClick #(om/transact! this '[(doit)])} "!!!")))))
 
 (def ui-child (om/factory Child))
+
 (defui Root
   static uc/InitialAppState
-  (initial-state [this params] [:r 0 {:child (uc/initial-state Child {})}])
+  (initial-state [this params] {:r 0 :child (uc/initial-state Child {})})
   static om/IQuery
   (query [this] [:r {:child (om/get-query Child)}])
   Object
@@ -171,4 +178,3 @@
   At some point you'll also be interested in setting up [a development environment](#!/untangled_tutorial.F_Untangled_DevEnv)
   for your own project.
   ")
-
