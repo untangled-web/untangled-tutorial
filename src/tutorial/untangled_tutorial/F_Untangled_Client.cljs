@@ -3,10 +3,6 @@
   [om.dom :as dom]
   [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
-; TODO: Need exercises.
-; See G-exercises for example of using tutmacros untangled-app to embed app in card
-; MIGHT be nice to modify or create a way for them to be the creator
-; of the app itself.
 ; TODO: In these exercises, probably better to have them make an HTML file, a namespace with make/mount, etc.
 ; See DIV in index.html (have it render over top of tutorial)
 ; NOTE: in exercises you'll have them MAKE (by hand) initial app state
@@ -80,15 +76,23 @@
      (tm/untangled-app ui/Root)
      { :some-data 42} ; <-- initial state from the card.
                       ; Not used if using InitialAppState (next section)
-     { :inspect-data true}) ; <-- devcard options
+     { :inspect-data true}) ; <-- devcard options, see app state in the card!
   ```
 
-  ## Moving on...
+  ## Initial Application State
 
-  You're probably interested in seeing your application do more than render static state, so let's
-  look closer at [mutations](#!/untangled_tutorial.G_Mutation) now.
+  The `:initial-state` option of `new-untangled-client` can accept a map (which will be assumed to be a TREE of non-normalized data),
+  or an `atom` (which will be assumed to be a pre-normalized database).
 
-  At some point you'll be interested in setting up
-  [a development environment](#!/untangled_tutorial.F_Untangled_DevEnv).
+  If you supply a map, it will be auto-normalized using your UI's query. If you supply an atom it will be used AS the
+  application database.
+
+  We do *not* recommend initializing your application in *either* of these ways except in extremely simple circumstances,
+  instead Untangled has a clever way for you to co-locate your initial app state locally on the components so that
+  you just don't have to think much about it.
+
+  You should definitely read the next section about [the InitialAppState mechanism](#!/untangled_tutorial.F_Untangled_Initial_App_State). It
+  will make your life easier.
+
   ")
 
