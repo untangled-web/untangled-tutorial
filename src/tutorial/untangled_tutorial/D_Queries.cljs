@@ -10,12 +10,6 @@
             [devcards.util.edn-renderer :refer [html-edn]]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
-; TODO: pointers from ref guide
-; TODO: Move query parameter stuff to server-side.
-; TODO: Give some motivation about not using q params on client UI, with pointer to later section about post-mutations that solve
-; the same problem.
-; TODO: Mention that parameters on queries ARE useable and useful when talking to the server (mutations that modify the remote request).
-
 (defcard-doc
   "
   # Queries
@@ -179,31 +173,13 @@
 
   ### Parameters in the query
 
-  All of the query elements can be parameterized (this is distinctly different than the feature provided
-  by `IQueryParams`, which is a UI feature for dynamically modifying queries at runtime). All of the
-  parameter forms are surrounded by parens, and contain an additional map of k/v pairs that stand
-  for the parameters.
-
-  For example, you could (abstractly) parameterize a join like so (note we need to quote it now, since
-  we're using list notation, and don't want the compiler to try calling the query element as a function):
-
-  ```
-        vvvvv the join keyword
-  '[({:friends [:person/name :person/age]}  { :limit 10 :order :by-name })]
-  ; ^ note paren        ^^^^ The join selector      ^^^^^^^^ parameters  ^ note paren
-  ```
-
-  It is *very important to realize* that the parameters in the query above were pulled directly
-  out of the author's hindquarters. Om knows nothing about them, other than they are legal
-  parts of the query grammar. If you want to give them meaning then you'll have to add code that
-  does so.
-
-  You see, the parameters you include in the query are passed down to the query engine (which you help
-  write), and can be used however you choose. The built-in helper function for queries (which we're using
-  in our query cards) can do basic data reads, but it isn't smart enough to do anything else.
-
-  See the section on [State Reads and Parsing](#!/om_tutorial.E_State_Reads_and_Parsing) for more information
-  on writing and interpreting queries that contain parameters.
+  Untangled takes the approach to not use, or parse query parameters in the client for reads. Adding query param
+  parsing introduces complexity in the parser, and you simply do not need it. In many cases, you will
+  find that follow on reads from a mutation solve your problem with less complexity. However, in
+  [server side interactions](http://untangled-web.github.io/untangled/tutorial.html#!/untangled_tutorial.H_Server_Interactions),
+  you will find that query params can be used for reads. And since you will implement your own read parser,
+  you have control of how those are dealt with. [Mutations](http://untangled-web.github.io/untangled/tutorial.html#!/untangled_tutorial.G_Mutation)
+  are a place where parameters are very useful. Plan on using them there.
 
   ### Looking up by ident
 
@@ -243,8 +219,17 @@
 (defcard-doc
   "### Using links
 
-  Links look like idents, but they replace the ID portion with the special symbol `_`. Note
-  that symbols need to be quoted, so a query including a link will need to leverage
+  Links look like idents, but they replace the ID portion with the special symbol `_`.
+  One way of thinking about this is, go get `:my-key`, which is at the top level, and
+  `_` implies that you don't care about the id. This is very similar to the ident based
+  query above, except that in the ident query, you do care about the id (the 2nd tuple value).
+  This pattern of `[[:first :second]]` is a lot like saying, `(get-in app-db [:first :second])`
+  Furthemore, `[{[:first :second] [:prop-a :prop-b]]}]` is like
+  `(-> app-db (get-in [:first :second]) (select-keys [:prop-a :prop-b]))`. Remember the constraint
+  about having two values in the ident? Well, the `_` allows us to use an *I'm not worried about the
+  second value*. This is a really powerful notion when you apply it to nested queries.
+
+  Note that symbols need to be quoted, so a query including a link will need to leverage
   quoting in normal syntax. In the section on the database format we talked about top-level
   singletons. Links are the way to access them anywhere from the UI because they can appear
   at any level in the nested query.
