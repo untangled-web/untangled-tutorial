@@ -10,6 +10,7 @@
     untangled-tutorial.E-UI-Queries-and-State
     untangled-tutorial.E-UI-Queries-and-State-Exercises
     untangled-tutorial.F-Untangled-Client
+    untangled-tutorial.F-Untangled-DevEnv
     untangled-tutorial.F-Untangled-Initial-App-State
     untangled-tutorial.G-Mutation
     untangled-tutorial.G-Mutation-Exercises

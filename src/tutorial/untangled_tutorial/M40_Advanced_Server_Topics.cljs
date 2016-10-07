@@ -1,12 +1,15 @@
 (ns untangled-tutorial.M40-Advanced-Server-Topics
-  (:require-macros [cljs.test :refer [is]])
+  (:require-macros [cljs.test :refer [is]]
+                   [untangled-tutorial.tutmacros :refer [untangled-app]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [devcards.util.edn-renderer :refer [html-edn]]
             [devcards.core :as dc :refer-macros [defcard defcard-doc deftest]]
             [cljs.reader :as r]
             [om.next.impl.parser :as p]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
+            [untangled.client.mutations :as m]
+            [untangled.client.core :as uc]))
 
 ; TODO: (advanced?) Client headers? Cookies? related stuff to security.
 
@@ -165,16 +168,32 @@
   Then, in `src/server/app/api.clj` add a mutation (use `defmethod`) that logs your configuration value `:sample :n` using timbre from the
   `:action` of a new mutation named `(exercise5/trigger)`.
 
-  Edit `exercise-app/app/ui.cljs` and note the client mutation implementation (to trigger the server mutation).
+  The devcard below is a simple untangled app that can trigger your mutation.
 
-  For this exercise you'll need to run the sample standalone app in order to trigger mutations on the server. Add `-Dapp` to your figwheel build:
+  ")
 
-  <img src=\"img/adding-app.png\">
+(defmethod m/mutate 'exercise5/trigger [e k p]
+  ; TODO: Note how we're triggering the remote:
+  {:remote true})
 
-  Restart figwheel, and when compilation is done you should be able to load [http://localhost:3449/app.html](http://localhost:3449/app.html). The UI is
-  very simple.
+(defui Root
+  static uc/InitialAppState
+  (initial-state [this params] {})
+  Object
+  (render [this]
+    (dom/button #js {:onClick #(om/transact! this '[(exercise5/trigger)])} "Click Me")))
 
-  Start your server, and *make sure you sample app is running on the same port as your server* (e.g. replace the figwheel port 3449 on the app URL with
+(defcard server-trigger
+  "This card will trigger your server mutation.
+
+  **IMPORTANT:** You MUST be running the tutorial from your server URL (port).
+
+  When you click the button below it will trigger an `exercise5/trigger` remote mutation."
+  (untangled-app Root))
+
+(defcard-doc
+  "
+  Start your server, and *make sure you reload this tutorial on the port of your server* (e.g. replace the figwheel port 3449 on the app URL with
   your server port (see the server log for which port it is using)).
 
   You should see your config data logged when you trigger the mutation from the UI.

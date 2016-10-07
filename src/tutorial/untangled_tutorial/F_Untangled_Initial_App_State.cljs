@@ -7,8 +7,6 @@
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [cljs.reader :as r]))
 
-; TODO: Exercise repeat from last section, but made easier by IAS protocol
-
 (defui Child
   static uc/InitialAppState
   (initial-state [this params] {:id 1 :x 1})
@@ -39,16 +37,16 @@
   # Initial Application State
 
   Setting up the initial application state can be a little troublesome to both create, and to keep track of as you
-  evolve your UI. As a result, Untangled version 0.5.4 and above include a mechanism to make this process easier to
-  manage: The InitialAppState protocol. You can implement this protocol in your component as a method to compose your
-  initial app state in parallel with your application query. This helps quite a bit with local reasoning, and makes
+  evolve your UI. As a result, Untangled version 0.5.4 and above includes a mechanism to make this process easier to
+  manage: The InitialAppState protocol. You can implement this protocol in your components to compose your
+  initial app state in parallel with your application query and UI tree. This helps quite a bit with local reasoning and makes
   it much easier to find/fix problems with your application's startup.
 
   You can see it in action in this [online getting started video](https://youtu.be/vzIrgR9iXOw?list=PLVi9lDx-4C_T_gsmBQ_2gztvk6h_Usw6R).
 
   ## The Basics
 
-  Om has a built-in normalization mechanism. If you pass a tree of UI state in as initial state, it will use your `Ident`
+  Om has a built-in normalization mechanism. If you pass a tree of UI state in as initial state then it will use your `Ident`
   functions to normalize the tree into a proper graph. Untangled just makes this a slight bit easier to manage by defining
   the InitialAppState protocol to give you a convenient way to manage this.
 
@@ -90,7 +88,7 @@
   apps of any size).
 
   The problem lies in the fact that a to-one union names multiple branches of the query, but there is only one place
-  in app state to store the reality of now (initial state). For example, if you had a union query to switch between the `Main`
+  in app state to store the reality of *now* (the initial state). For example, if you had a union query to switch between the `Main`
   and `Settings` tab:
 
   ```
@@ -100,7 +98,7 @@
   [{:tab-switcher { :main (om/get-query Main) :settings (om/get-query Settings) }}]
   ```
 
-  Now assume the `ident` function generates idents `[:main-tab :id]` and `[:settings-tab :id]` for the two possible tabs. What
+  and the `ident` function generates idents `[:main-tab :id]` and `[:settings-tab :id]` for the two possible tabs. What
   you would *like* to see in initial app state is something like this:
 
   ```
@@ -141,8 +139,9 @@
   ## Additional Helpers
 
   If there is some portion of app state that you'd like to manipulate outside of the provided mechanism, then you can of
-  course use the `started-callback` parameter of untangled client. There are two useful methods in the core namespace
-  that can help you manipulate application state:
+  course use the `started-callback` of untangled client. The callback will run *after* initial app state is complete.
+
+  There are two useful methods in the core namespace that can help you manipulate application state:
 
   ```
   (merge-state! [app component-class data & ident-merges])
@@ -161,5 +160,15 @@
   - `:append ks` : Append the ident of the merged data onto the vector at path `ks`
   - `:replace ks` : Replace the ident of the merged data at path `ks` (which can be a singleton, or position in vector)
   - `:prepend ks` : Prepend the ident of the merged data onto the vector at path `ks`
+
+  These helpers are descibed in more detail in [Advanced Server Topics](#!/untangled_tutorial.M40_Advanced_Server_Topics).
+
+  ## Moving on...
+
+  Now that you've got a much easier way to create your initial state, you're probably interested in seeing your
+  application do more than render static state. It's time to learn about [mutations](#!/untangled_tutorial.G_Mutation)!
+
+  At some point you'll also be interested in setting up [a development environment](#!/untangled_tutorial.F_Untangled_DevEnv)
+  for your own project.
   ")
 
