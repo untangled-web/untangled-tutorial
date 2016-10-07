@@ -425,7 +425,13 @@
 
   Om has a built in function `tempid` that will generate an om-specific temporary ID. This allows the normalization
   and denormalization of the client side database to continue working while the server processes the new data and returns
-  the permanent identifiers. Here are the client-side and server-side implementations of the same mutation:
+  the permanent identifiers.
+
+  WARNING: Because om mutations can be called multiple times (at least once and once per each remote),
+   you should take care to not call `om.next/tempid` inside your mutation.
+   Instead call it from your UI code that builds the mutation params, thereby solving this problem.
+
+  Here are the client-side and server-side implementations of the same mutation:
 
   ```
   ;; client
