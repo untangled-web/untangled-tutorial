@@ -101,7 +101,7 @@
 
 (defcard todo-list-application
   "This card can be used to show your application. "
-  (untangled-app soln1/TodoList)
+  (untangled-app soln2/TodoList)
   {}
   {:inspect-data true})
 
@@ -116,6 +116,11 @@
   parameter of the UI transaction) to generate an ID for the new item.
 
   Next, hook up the delete button to remove items.
+
+  The solutions to this exercise are in `putting_together/soln_ex_2.cljs`.
+
+  ## Exercise 3
+
 
   ## Further Reading
 

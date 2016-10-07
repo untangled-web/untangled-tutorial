@@ -39,8 +39,8 @@
   (render [this]
     (let [{:keys [list/title list/items]} (om/props this)]
       (dom/div nil
-        (dom/input #js {}) (dom/button nil "Add")
         (dom/h4 nil title)
+        (dom/input #js {}) (dom/button nil "Add")
         (dom/ol nil (map ui-item items))))))
 
 (def ui-item-list (om/factory ItemList))
