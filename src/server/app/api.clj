@@ -11,7 +11,6 @@
 
 ;; your query entry point (feel free to make multimethod). Standard Om fare here.
 (defn api-read [{:keys [ast query] :as env} dispatch-key params]
-  (Thread/sleep 1000)
   (case dispatch-key
     :something {:value 66}
     (timbre/error "Unrecognized query for " dispatch-key " : " query)))
