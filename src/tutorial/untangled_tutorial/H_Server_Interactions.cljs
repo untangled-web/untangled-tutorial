@@ -257,6 +257,50 @@
   acceptable to define queries via `defui` to ensure normalization will work, and this will commonly be the case if your
   UI needs to ask for data in a structure different from what you want to run against the server.
 
+  ### Parameterized Reads
+
+  You may add parameters to your remote reads using an optional argument to data fetch:
+
+  ```
+  (defui Article
+    static om/IQuery (query [this] [:id :content {:comments (om/get-query Comments)}])
+    static om/Ident (ident [this props] [:article/by-id (:id props)])
+    (render [this]
+      ;; render article content
+      ;; ...
+      ;; render a load comments button:
+      (dom/button #js {:onClick #(df/load-field this :comments
+                                  :params {:comments {:lowValue 0 :highValue 10}})}
+        \"Load Comments\")))
+  ```
+  This sample query parameterizes the read to this article's comments with a range, say so that the server only returns
+   the first ten most recent comments. The keys of the params map specify the keywords in the query that should be
+   parameterized, and the values specify the parameter maps for their respective keys.
+
+  So, `(load-field this :comments)` above would yield a query of the form:
+
+  ```
+  [{[:article/by-id 32] [{:comments [:other :props]]}]
+  ```
+
+  while `(load-field this :comments :params {:comments {:lowValue 0 :highValue 10}})` would yield a query of the form:
+
+  ```
+  [{[:article/by-id 32] [{(:comments {:lowValue 0 :highValue 10}) [:other :props]]}]
+  ```
+
+  So, when you specify parameters to one of the items in your query, Untangled will add the parameters at that level
+  of the query, which you will be able to access when parsing the query on the server-side read:
+
+  ```
+  (defmethod api-read :comments [{:keys [db ast]} k {:keys [lowValue highValue]}]
+    {:value (get-comments-in-range db (:key ast) lowValue highValue)})
+    ;; calls (get-comments-in-range db [:article/by-id 32] 0 10), assuming code snippet above
+
+  (defmethod api-read :article/by-id [{:keys [parser query] :as env} k params]
+    {:value (parser env query)})
+  ```
+
   ### Query narrowing
 
   The load functions allow you to elide parts of the query using a `:without` set. This is useful when you have a query
