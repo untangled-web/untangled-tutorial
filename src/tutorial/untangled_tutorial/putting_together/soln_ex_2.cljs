@@ -1,11 +1,15 @@
-(ns untangled-tutorial.putting-together.solutions
+(ns untangled-tutorial.putting-together.soln-ex-2
   (:require-macros [cljs.test :refer [is]]
                    [untangled-tutorial.tutmacros :refer [untangled-app]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [untangled.client.core :as uc]
-            [untangled.client.data-fetch :as df]))
+            [untangled.client.data-fetch :as df]
+            [untangled.client.mutations :as m]))
+
+(defmethod m/mutate 'pit-soln/toggle-done [{:keys [state]} k {:keys [id]}]
+  {:action (fn [] (swap! state update-in [:items/by-id id :item/done] not))})
 
 (defui ^:once TodoItem
   static uc/InitialAppState
@@ -18,7 +22,7 @@
   (render [this]
     (let [{:keys [item/id item/label item/done]} (om/props this)]
       (dom/li nil
-              (dom/input #js {:type "checkbox" :checked done})
+              (dom/input #js {:type "checkbox" :onChange #(om/transact! this `[(pit-soln/toggle-done ~{:id id})]) :checked done})
               label))))
 
 (def ui-item (om/factory TodoItem))

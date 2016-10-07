@@ -3,7 +3,8 @@
                    [untangled-tutorial.tutmacros :refer [untangled-app]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [untangled-tutorial.putting-together.solutions :as soln]
+            [untangled-tutorial.putting-together.soln-ex-1 :as soln1]
+            [untangled-tutorial.putting-together.soln-ex-2 :as soln2]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [untangled.client.core :as uc]
             [untangled.client.data-fetch :as df]))
@@ -57,14 +58,17 @@
   <div>  <!-- TodoList -->
     <div>  <!-- ItemList -->
       <h4>TODO</h4>
+      <input type=text><button>Add</button>
       <ol>
-        <li>Item 1</li> <!-- TodoItem -->
-        <li>Item 2</li> <!-- TodoItem -->
-        <li>Item 3</li> <!-- TodoItem -->
+        <li><input type=checkbox> Item 1 <button>X</button></li> <!-- TodoItem -->
+        <li><input type=checkbox> Item 2 <button>X</button></li> <!-- TodoItem -->
+        <li><input type=checkbox> Item 3 <button>X</button></li> <!-- TodoItem -->
       </ol>
     </div>
   </div>
   ```
+
+  ## Exercise 1 - Create the UI
 
   You should have components for `TodoList` (which will be your root), `ItemList`, and `TodoItem`.
   `K_Putting_It_Together.cljs` has the basic bits already named.
@@ -76,7 +80,7 @@
   - don't foget static
   - A :keyfn on the TodoItem factory
 
-  When you're done, the devcard should render things correctly. There are solutions in `untangled_tutorial/putting_together/solutions.cljs`
+  When you're done, the devcard should render things correctly. There are solutions in `untangled_tutorial/putting_together/soln_ex_1.cljs`
   if you get stuck.
   ")
 
@@ -97,11 +101,22 @@
 
 (defcard todo-list-application
   "This card can be used to show your application. "
-  (untangled-app TodoList)
+  (untangled-app soln1/TodoList)
   {}
   {:inspect-data true})
 
 (defcard-doc "
+  ## Exercise 2 -- Add Some Local Mutations
+
+  First, let's make it so we can check/uncheck items. A simple mutation that toggles done should do this, once it is
+  hooked to `:onChange` of the input.
+
+  Once you've done that, hook up the input field and button to add items. The mutation should add a new item to the database
+  of items and append it (use `integrate-ident!`) to the list of items. Remember to use `om/tempid` (as a
+  parameter of the UI transaction) to generate an ID for the new item.
+
+  Next, hook up the delete button to remove items.
+
   ## Further Reading
 
   There are many examples of client-only and full-stack applications in the
