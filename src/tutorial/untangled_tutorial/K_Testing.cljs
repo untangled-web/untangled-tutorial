@@ -23,6 +23,11 @@
       - Mocks can simulate timelines for CSP logic
   - Protocol testing support (helps prove network interactions are correct without running the full stack)
 
+  ## Docs
+  
+  Make sure to check out the [Untangled Spec Docs](https://github.com/untangled-web/untangled-spec/blob/develop/docs/index.adoc#untangled-spec-docs) for up 
+  to date documentation on features, setup and usage.
+  
   ## Setting up
 
   If you look in `test/client/app` you'll see a few files. Only one of the four is a specification. The other three
