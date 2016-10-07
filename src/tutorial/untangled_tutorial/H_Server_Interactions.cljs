@@ -286,7 +286,7 @@
   while `(load-field this :comments :params {:comments {:lowValue 0 :highValue 10}})` would yield a query of the form:
 
   ```
-  [{[:article/by-id 32] [{(:comments {:lowValue 0 :highValue 10}) [:other :props]]}]
+  [{[:article/by-id 32] [({:comments [:other :props]} {:lowValue 0 :highValue 10})]}]
   ```
 
   So, when you specify parameters to one of the items in your query, Untangled will add the parameters at that level
