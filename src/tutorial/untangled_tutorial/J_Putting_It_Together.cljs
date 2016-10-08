@@ -5,6 +5,8 @@
             [om.dom :as dom]
             [untangled-tutorial.putting-together.soln-ex-1 :as soln1]
             [untangled-tutorial.putting-together.soln-ex-2 :as soln2]
+            [untangled-tutorial.putting-together.soln-ex-3 :as soln3]
+            [untangled-tutorial.putting-together.soln-ex-4 :as soln4]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
             [untangled.client.core :as uc]
             [untangled.client.data-fetch :as df]))
@@ -101,7 +103,7 @@
 
 (defcard todo-list-application
   "This card can be used to show your application. "
-  (untangled-app soln2/TodoList)
+  (untangled-app TodoList)
   {}
   {:inspect-data true})
 
@@ -119,13 +121,89 @@
 
   The solutions to this exercise are in `putting_together/soln_ex_2.cljs`.
 
-  ## Exercise 3
+  ## Exercise 3 -- Add Server Support
 
+  First, remove all of your pregenerated todo items from your InitialAppState.
+
+  Now that your application is working on the client, let's add in server support!
+
+  Create a new server namespace and make an in-memory database:
+
+  ```clojure
+  (def lists (atom { ...db of lists/items... }))
+  (def next-id (atom 0))
+  ```
+
+  Now add implementations of the multimethods that can support your UI operations on the server by manipulating this
+  in-memory database. Feel free to structure it however you want.
+
+  It will be useful if you log your database as server interactions occur so you can see things working. Be sure to
+  reset your server to refresh code!
+
+  The solutions for this exercise are in
+  `src/tutorial/untangled_tutorial/putting_together/soln_ex_3.cljs` and
+  `src/server/solutions/putting_together.clj`.
+
+  ## Exercise 4 -- Initial Load
+
+  You should have a mostly-working application at this point, except for one thing: if you
+  reload the UI, the UI does *not* reflect the state of the server! The UI need not change
+  for this, but you'll need to add a `started-callback` to the app, make a query that
+  hits the server, and a post-mutation that can properly transform the fetched data
+  into the app state.
+
+  **Bonus**: The post mutation can be totally avoided by generating a query targeted correctly.
+
+  A solution can be see by uncommenting the devcard at the bottom of this tutorial source page.
 
   ## Further Reading
 
   There are many examples of client-only and full-stack applications in the
   [https://github.com/untangled-web/untangled-cookbook](Untangled Cookbook).
+
+  ## A Final, working, solution
   ")
 
+
+(defcard todo-list-application-solution-post-mutation
+  "A final solution. The source is in:
+
+  - `untangled-tutorial.putting-together.soln-ex-3` (cljs for UI)
+  - `untangled-tutorial.putting-together.soln-ex-4` (cljs for post mutation)
+  - `solutions.putting-together` (clj server-side API implementation)
+
+  NOTE: THESE TWO SOLUTIONS SHARE server state but are not connected. Thus, changing one will not reflect in the other.
+  You should reload the page between playing with each of them.
+  "
+
+  (untangled-app soln3/TodoList
+                 :started-callback
+                 (fn [{:keys [reconciler]}]
+                   (df/load-data reconciler
+                                 `[({:ex4/list ~(om/get-query soln3/TodoItem)} {:list "My List"})]
+                                 :post-mutation 'pit-soln/populate-list)))
+  {}
+  {:inspect-data true})
+
+(defcard todo-list-application-solution-bonus
+  "The bonus for the final solution:
+
+  You can avoid the post-mutation with a query on load-data like this (assuming you implement
+  the response correctly on the server, which we've done in `putting_together.clj`):
+
+  ```clojure
+  [{[:lists/by-title \"My List\"] (om/get-query ItemList)}]
+  ```
+
+  NOTE: THESE TWO SOLUTIONS SHARE server state but are not connected. Thus, changing one will not reflect in the other.
+  You should reload the page between playing with each of them.
+  "
+  (untangled-app soln3/TodoList
+                 :started-callback
+                 (fn [{:keys [reconciler]}]
+                   (js/console.log :LOADING)
+                   (df/load-data reconciler
+                                 `[{[:lists/by-title "My List"] ~(om/get-query soln3/ItemList)}])))
+  {}
+  {:inspect-data true})
 

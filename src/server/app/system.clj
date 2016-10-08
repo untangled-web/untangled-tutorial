@@ -13,6 +13,8 @@
 
 (defn logging-mutate [env k params]
   (timbre/info "Mutation Request: " k)
+  ; If you want to see things happen, add in a delay:
+  ; (Thread/sleep 2000)
   (api/apimutate env k params))
 
 ; build the server
