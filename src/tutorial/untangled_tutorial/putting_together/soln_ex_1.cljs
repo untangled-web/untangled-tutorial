@@ -1,4 +1,4 @@
-(ns untangled-tutorial.putting-together.solutions
+(ns untangled-tutorial.putting-together.soln-ex-1
   (:require-macros [cljs.test :refer [is]]
                    [untangled-tutorial.tutmacros :refer [untangled-app]])
   (:require [om.next :as om :refer-macros [defui]]
@@ -19,7 +19,9 @@
     (let [{:keys [item/id item/label item/done]} (om/props this)]
       (dom/li nil
               (dom/input #js {:type "checkbox" :checked done})
-              label))))
+              label
+              (dom/button #js {} "X")
+              ))))
 
 (def ui-item (om/factory TodoItem))
 
@@ -38,6 +40,7 @@
     (let [{:keys [list/title list/items]} (om/props this)]
       (dom/div nil
         (dom/h4 nil title)
+        (dom/input #js {}) (dom/button nil "Add")
         (dom/ol nil (map ui-item items))))))
 
 (def ui-item-list (om/factory ItemList))
