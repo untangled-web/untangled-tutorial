@@ -10,6 +10,8 @@
             [cljs.reader :as r]
             [om.next.impl.parser :as p]))
 
+; TODO: Need more exercises.
+
 (defcard-doc
   "# Server exercises
 
@@ -89,30 +91,28 @@
   (render [this]
     (let [{:keys [ui/loading-data something] :as props} (om/props this)]
       (dom/div nil
-               (dom/h2 nil (str "Root " (if loading-data "(loading)" "")))
-               (dom/button #js {:onClick (fn [evt] (df/load-data this [:something]))} "Load data")
-               (df/lazily-loaded render-something something)))))
+        (dom/h2 nil (str "Root " (if loading-data "(loading)" "")))
+        (dom/button #js {:onClick (fn [evt] (df/load-data this [:something]))} "Load data")
+        (df/lazily-loaded render-something something)))))
 
 (defcard server-exercise-1
-         "## Exercise 1 - Modify a Server Query
+  "## Exercise 1 - Modify a Server Query
 
-         First, play with this card and notice what happens. A global state marker (`:ui/loading-data`)
-         is updated during loading, allowing you to place a global network indicator on your UI (you can
-         query it anywhere via a link).
+  First, play with this card and notice what happens. A global state marker (`:ui/loading-data`)
+  is updated during loading, allowing you to place a global network indicator on your UI (you can
+  query it anywhere via a link).
 
-         NOTE: `:ui/loading-data` was called `:untangled/load` in 0.4.6 and below.
+  A fetch state is placed in the application database at the top-level key of the query. The query for
+  `load-data` should be a single item or collection (e.g. a join or a property).
 
-         A fetch state is placed in the application database at the top-level key of the query. The query for
-         `load-data` should be a single item or collection (e.g. a join or a property).
+  The data fetch render helper `lazily-loaded` can be used to render the various possible states of the
+  data fetch (usually just loading, but failed and others are possible).
 
-         The data fetch render helper `lazily-loaded` can be used to render the various possible states of the
-         data fetch (usually just loading, but failed and others are possible).
+  Open the `api.clj` file, find the place where `:something` is in the case statement and change the
+  return value (remember to leave the `{:value }` wrapper, which Om requires).
 
-         Open the `api.clj` file, find the place where `:something` is in the case statement and change the
-         return value (remember to leave the `{:value }` wrapper, which Om requires).
-
-         Now `(reset)` your server and try the UI button again.
-         "
-         (untangled-app Ex1-Root)
-         { :something 22 }
-         {:inspect-data true})
+  Now `(reset)` your server and try the UI button again.
+  "
+  (untangled-app Ex1-Root)
+  {:something 22}
+  {:inspect-data true})

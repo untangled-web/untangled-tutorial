@@ -9,6 +9,10 @@
             [devcards.util.edn-renderer :refer [html-edn]]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: Unions (advanced?)
+; TODO: More complete covereage of queries in the context of UI.
+; - Links (and the fact that a link-ONLY query still requires at least an empty thing in app state
+; -
 (defcard-doc
   "
   # UI, queries and state

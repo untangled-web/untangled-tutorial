@@ -4,6 +4,9 @@
             [om.dom :as dom]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
 
+; TODO: add stuff here with links.
+; TODO: Link existing terms back to docs
+
 (defcard-doc
   "# Glossary of terms
 

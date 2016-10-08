@@ -1,102 +1,23 @@
-# Untangled Tutorial 
+# Untangled Developers Guide
 
-NOTE: This tutorial is in progress. It is not complete.
-
-This is an interactive tutorial for developing applications with 
-the Untangled web framework.
-
-It is really meant to be cloned locally, as the 
+This is an interactive developers guide for developing applications with 
+Untangled. It is meant to be cloned locally, as the included
 exercises require you to extend and edit the code.
-
-There are two primary branches in this repository:
-
-- `main`: The branch to use to complete the tutorial
-- `solution`: A branch with all of the exercises completed (NOT WRITTEN)
 
 ## What's inside?
 
-This tutorial covers all of the elements of the Untangled 
-framework, including the necessary elements of the underlying
-Om library (on which much of the system is based):
+This guide covers all of the elements of Untangled, including the 
+necessary elements of the underlying Om library (on which much of the 
+system is based).
 
-- Recommended Development Environment
-    - IntelliJ/Cursive
-    - Adding Run Configurations for client and server
-    - Running Figwheel w/REPL Integration
-    - Running Server REPL
-    - Running Selected Builds with REPL
-        - Switching Client REPLs
-- The critical elements of Om UI
-    - Application database format
-        - Tables
-        - Idents
-        - Building out the graph
-    - Queries
-        - Properties
-        - Joins
-        - Unions
-    - Constructing UI
-        - Colocated queries and Idents
-        - Normalization
-        - Initial state
-- Untangled extensions for UI
-    - Built-in Om parser
-    - Rationale for reductions of complexity (and flexibility) from standard Om Next
-    - Built-in UI mutations
-    - Making the UI dynamic
-        - Basic mutations
-        - (e.g. tabs, sub-tabs, modal dialogs)
-    - Internationalization
-    - Logging
-- Server integration 
-    - The Untangled server
-        - Server Side Query processing
-            - Parsing Queries
-        - Parsing/Processing Mutations
-            - Tempids
-    - Initial Application Loads
-        - `(load-data)`
-        - Choosing a query
-        - Eliding portions of the query (for later lazy loading)
-        - Sending additional parameters to the server
-        - Post-processing the query result
-    - Lazy loading additional content
-        - Lazy loading a field for a component `(load-field)`
-    - Network plumbing guarantees sequential processing
-    - Tempid Handling
-        - Support for returning :tempids from server action
-        - Automatically fixed in client state (no code required)
-        - Tempids rewritten in network send queue
-    - Fallbacks (unhappy path for handling server errors)
-        - `(tx/fallback)`
-        - Clearing the network send queue
-    - Support for UI/Server data separation in queries
-        - Elision of :ui/... attributes in server queries
-    - Advanced Merging
-        - Deep merging
-        - Behavior when merging to existing entities
-- Preparing for Production Deployment
-    - Internationalization 
-        - Extracting Strings
-        - Translating
-        - Generating cljs translation files
-        - Using modules to lazy-load translations
-- Untangled Spec
-    - Client/server specifications
-    - Running client tests in multiple browsers
-    - Running server tests with outline rendering
-    - Running tests from the command line (CI testing)
-    - Protocol testing: test queries and mutations as if there was a network
-        
 # Running It
 
 ## Figwheel
 
 The following builds are configured in figwheel:
 
-- `tutorial`: Devcards tutorial for the content listed above
+- `tutorial`: This is the main guide.
 
-UNFINISHED:
 - `test`: Tests for the client application (for you to see/extend)
 
 ### IntelliJ/Cursive
@@ -134,11 +55,10 @@ You should now be able to run the builds via the IDE.
 JVM_OPTS="-Dtutorial" lein run -m clojure.main script/figwheel.clj
 ```
 
-Then browse to the following URL:
+## Accessing the Guide and the Tests:
 
-```
-http://localhost:3450
-```
+The guide should be visible at: http://localhost:3449
+The tests should be visible at: http://localhost:3449/test.html
 
 ### Figwheel notes
 
@@ -153,10 +73,9 @@ after which you probably want to reload the page in your browser to clear out an
 Sometimes (rarely) it is necessary to just stop it all, clean everything with `lein clean` and
 restart.
 
-# PLEASE IGNORE THE FOLLOWING. IT IS UNFINISHED.
-
 ## Server
 
+Some of the exercises have you run a web server.
 Running the server is pretty simple. It is set up to run just fine from nREPL or clojure main. 
 
 You *must* first copy a default configuration file from resources/config/defaults.edn to

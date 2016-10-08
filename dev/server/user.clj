@@ -7,51 +7,49 @@
     [com.stuartsierra.component :as component]
     [datomic-helpers :refer [to-transaction to-schema-transaction ext]]
     [datomic.api :as d]
-    [environ.core :refer [env]]
+    [app.system :as app]
+    [figwheel-sidecar.system :as sys]
     [taoensso.timbre :refer [info set-level!]]
-    [untangled.datomic.schema :refer [dump-schema dump-entity]]
-    [clojure.java.io :as io]
-    [figwheel-sidecar.repl-api :as ra]
-    [app.system :as sys]))
+    [untangled.datomic.schema :refer [dump-schema dump-entity]]))
 
 ;;FIGWHEEL
-
-(def figwheel-config
-  {:figwheel-options {:css-dirs ["resources/public/css"] :server-port 3450}
-   :build-ids        ["tutorial"]
-   :all-builds       (figwheel-sidecar.repl/get-project-cljs-builds)})
+(def figwheel-config (sys/fetch-config))
+(def figwheel (atom nil))
 
 (defn start-figwheel
   "Start Figwheel on the given builds, or defaults to build-ids in `figwheel-config`."
   ([]
    (let [props (System/getProperties)
-         all-builds (->> figwheel-config :all-builds (mapv :id))]
+         all-builds (->> figwheel-config :data :all-builds (mapv :id))]
      (start-figwheel (keys (select-keys props all-builds)))))
   ([build-ids]
-   (let [default-build-ids (:build-ids figwheel-config)
-         build-ids (if (empty? build-ids) default-build-ids build-ids)]
+   (let [default-build-ids (-> figwheel-config :data :build-ids)
+         build-ids (if (empty? build-ids) default-build-ids build-ids)
+         preferred-config (assoc-in figwheel-config [:data :build-ids] build-ids)]
+     (reset! figwheel (component/system-map :figwheel-system (sys/figwheel-system preferred-config)))
      (println "STARTING FIGWHEEL ON BUILDS: " build-ids)
-     (ra/start-figwheel! (assoc figwheel-config :build-ids build-ids))
-     (ra/cljs-repl))))
+     (swap! figwheel component/start)
+     (sys/cljs-repl (:figwheel-system @figwheel)))))
 
 ;;SERVER
 
-;; needed so we don't scan cljs on refresh, which crashes namespace tools
-(set-refresh-dirs "dev/server" "src/server" "src/shared" "test/server" "test/shared")
+(set-refresh-dirs "src/server" "specs/server" "dev/server")
 
-(defonce system (atom nil))
+(def system (atom nil))
 
 (set-level! :info)
 
 (defn init
   "Create a web server from configurations. Use `start` to start it."
   []
-  (reset! system (sys/make-system)))
+  (reset! system (app/make-system)))
 
 (defn start "Start (an already initialized) web server." [] (swap! system component/start))
-(defn stop "Stop the running web server." []
-  (swap! system component/stop)
-  (reset! system nil))
+
+(defn stop "Stop the running web server. Is a no-op if the server is already stopped" []
+  (when @system
+    (swap! system component/stop)
+    (reset! system nil)))
 
 (defn go "Load the overall web server system and start it." []
   (init)

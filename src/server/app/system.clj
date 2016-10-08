@@ -3,12 +3,18 @@
     [untangled.server.core :as core]
     [app.api :as api]
     [om.next.server :as om]
-    [taoensso.timbre :as timbre]))
+    [solutions.advanced-server :as soln]
+    [taoensso.timbre :as timbre]
+    [com.stuartsierra.component :as component]
+    [untangled.server.impl.components.handler :as h]
+    [ring.util.response :as ring]))
 
 ;; IMPORTANT: Remember to load all multi-method namespaces to ensure all of the methods are defined in your parser!
 
 (defn logging-mutate [env k params]
   (timbre/info "Mutation Request: " k)
+  ; If you want to see things happen, add in a delay:
+  ; (Thread/sleep 2000)
   (api/apimutate env k params))
 
 ; build the server

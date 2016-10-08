@@ -1,11 +1,13 @@
 (ns untangled-tutorial.F-Untangled-Initial-App-State
   (:require-macros
+    [untangled-tutorial.tutmacros :refer [untangled-app]]
     [cljs.test :refer [is]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [untangled.client.core :as uc]
             [devcards.core :as dc :refer-macros [defcard defcard-doc]]
-            [cljs.reader :as r]))
+            [cljs.reader :as r]
+            [untangled.client.mutations :as m]))
 
 (defui Child
   static uc/InitialAppState
@@ -17,19 +19,20 @@
   Object
   (render [this]
     (let [{:keys [x]} (om/props this)]
-      (dom/p nil (str "Child: " x)))))
+      (dom/p nil (str "Child x: " x)))))
 
 (def ui-child (om/factory Child))
+
 (defui Root
   static uc/InitialAppState
-  (initial-state [this params] [:r 0 {:child (uc/initial-state Child {})}])
+  (initial-state [this params] {:root-prop 42 :child (uc/initial-state Child {})})
   static om/IQuery
-  (query [this] [:r {:child (om/get-query Child)}])
+  (query [this] [:ui/react-key :root-prop {:child (om/get-query Child)}])
   Object
   (render [this]
-    (let [{:keys [r child]} (om/props this)]
-      (dom/div nil
-        (str "Root: " r)
+    (let [{:keys [ui/react-key root-prop child]} (om/props this)]
+      (dom/div #js {:style #js {:border "1px solid black"} :key react-key}
+        (str "Root prop: " root-prop)
         (ui-child child)))))
 
 (defcard-doc
@@ -37,16 +40,16 @@
   # Initial Application State
 
   Setting up the initial application state can be a little troublesome to both create, and to keep track of as you
-  evolve your UI. As a result, Untangled version 0.5.4 and above include a mechanism to make this process easier to
-  manage: The InitialAppState protocol. You can implement this protocol in your component as a method to compose your
-  initial app state in parallel with your application query. This helps quite a bit with local reasoning, and makes
+  evolve your UI. As a result, Untangled version 0.5.4 and above includes a mechanism to make this process easier to
+  manage: The InitialAppState protocol. You can implement this protocol in your components to compose your
+  initial app state in parallel with your application query and UI tree. This helps quite a bit with local reasoning and makes
   it much easier to find/fix problems with your application's startup.
 
   You can see it in action in this [online getting started video](https://youtu.be/vzIrgR9iXOw?list=PLVi9lDx-4C_T_gsmBQ_2gztvk6h_Usw6R).
 
   ## The Basics
 
-  Om has a built-in normalization mechanism. If you pass a tree of UI state in as initial state, it will use your `Ident`
+  Om has a built-in normalization mechanism. If you pass a tree of UI state in as initial state then it will use your `Ident`
   functions to normalize the tree into a proper graph. Untangled just makes this a slight bit easier to manage by defining
   the InitialAppState protocol to give you a convenient way to manage this.
 
@@ -80,7 +83,15 @@
   1. Pull the initial state and use that as base app state
   2. Ensure that it is normalized by Om
   3. Will do a post-initialization step to ensure alternate branches of to-one unions are initialized.
+  ")
 
+(defcard sample-app
+  "This card shows the app from above, actively rendered. The resulting normalized app database is shown below the UI."
+  (untangled-app Root)
+  {}
+  {:inspect-data true})
+
+(defcard-doc "
   ## Union Initialization
 
   The last step mentioned in the prior section is particularly handy. In stock Om you to need to do some special backflips in order
@@ -88,7 +99,7 @@
   apps of any size).
 
   The problem lies in the fact that a to-one union names multiple branches of the query, but there is only one place
-  in app state to store the reality of now (initial state). For example, if you had a union query to switch between the `Main`
+  in app state to store the reality of *now* (the initial state). For example, if you had a union query to switch between the `Main`
   and `Settings` tab:
 
   ```
@@ -98,7 +109,7 @@
   [{:tab-switcher { :main (om/get-query Main) :settings (om/get-query Settings) }}]
   ```
 
-  Now assume the `ident` function generates idents `[:main-tab :id]` and `[:settings-tab :id]` for the two possible tabs. What
+  and the `ident` function generates idents `[:main-tab :id]` and `[:settings-tab :id]` for the two possible tabs. What
   you would *like* to see in initial app state is something like this:
 
   ```
@@ -139,8 +150,9 @@
   ## Additional Helpers
 
   If there is some portion of app state that you'd like to manipulate outside of the provided mechanism, then you can of
-  course use the `started-callback` parameter of untangled client. There are two useful methods in the core namespace
-  that can help you manipulate application state:
+  course use the `started-callback` of untangled client. The callback will run *after* initial app state is complete.
+
+  There are two useful methods in the core namespace that can help you manipulate application state:
 
   ```
   (merge-state! [app component-class data & ident-merges])
@@ -159,5 +171,15 @@
   - `:append ks` : Append the ident of the merged data onto the vector at path `ks`
   - `:replace ks` : Replace the ident of the merged data at path `ks` (which can be a singleton, or position in vector)
   - `:prepend ks` : Prepend the ident of the merged data onto the vector at path `ks`
+
+  These helpers are descibed in more detail in [Advanced Server Topics](#!/untangled_tutorial.M40_Advanced_Server_Topics).
+
+  ## Moving on...
+
+  Now that you've got a much easier way to create your initial state, you're probably interested in seeing your
+  application do more than render static state. It's time to learn about [mutations](#!/untangled_tutorial.G_Mutation)!
+
+  At some point you'll also be interested in setting up [a development environment](#!/untangled_tutorial.F_Untangled_DevEnv)
+  for your own project.
   ")
 
