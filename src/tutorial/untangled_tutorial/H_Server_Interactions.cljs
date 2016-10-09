@@ -1,14 +1,104 @@
 (ns untangled-tutorial.H-Server-Interactions
-  (:require-macros [cljs.test :refer [is]])
+  (:require-macros [cljs.test :refer [is]]
+                   [untangled-tutorial.tutmacros :refer [untangled-app]])
   (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
-            [devcards.core :as dc :refer-macros [defcard defcard-doc]]))
+            [devcards.core :as dc :refer-macros [defcard defcard-doc]]
+            [untangled.client.mutations :as m]
+            [untangled.client.core :as uc]))
 
 ; TODO: Explain Om's HATEOS (keyword listing in :keys)
 ; see: https://github.com/omcljs/om/wiki/Quick-Start-%28om.next%29
 ; TODO: Error handling (UI and server), exceptions, fallbacks, status codes
 ; Remember that global-error-handler is a function of the network impl
 ; TODO: (advanced) cookies/headers (needs extension to U.Server see issue #13)
+
+(defui ^:once CategoryQuery
+  static om/IQuery
+  (query [this] [] [:db/id :category/name])
+  static om/Ident
+  (ident [this props] [:categories/by-id (:db/id props)]))
+
+(defui ^:once ItemQuery
+  static om/IQuery
+  (query [this] [] [:db/id {:item/category (om/get-query CategoryQuery)} :item/name])
+  static om/Ident
+  (ident [this props] [:items/by-id (:db/id props)]))
+
+(def sample-server-response
+  {:all-items [{:db/id 5 :item/name "item-42" :item/category {:db/id 1 :category/name "A"}}
+               {:db/id 6 :item/name "item-92" :item/category {:db/id 1 :category/name "A"}}
+               {:db/id 7 :item/name "item-32" :item/category {:db/id 1 :category/name "A"}}
+               {:db/id 8 :item/name "item-52" :item/category {:db/id 2 :category/name "B"}}]})
+
+(def component-query [{:all-items (om/get-query ItemQuery)}])
+
+(def hand-written-query [{:all-items [:db/id :item/name
+                                      {:item/category [:db/id :category/name]}]}])
+
+(defui ^:once ToolbarItem
+  static om/IQuery
+  (query [this] [] [:db/id :item/name])
+  static om/Ident
+  (ident [this props] [:items/by-id (:db/id props)])
+  Object
+  (render [this]
+    (let [{:keys [item/name]} (om/props this)]
+      (dom/li nil name))))
+
+(def ui-toolbar-item (om/factory ToolbarItem {:keyfn :db/id}))
+
+(defui ^:once ToolbarCategory
+  static om/IQuery
+  (query [this] [] [:db/id :category/name {:category/items (om/get-query ItemQuery)}])
+  static om/Ident
+  (ident [this props] [:categories/by-id (:db/id props)])
+  Object
+  (render [this]
+    (let [{:keys [category/name category/items]} (om/props this)]
+      (dom/li nil
+        name
+        (dom/ul nil
+          (map ui-toolbar-item items))))))
+
+(def ui-toolbar-category (om/factory ToolbarCategory {:keyfn :db/id}))
+
+(defui ^:once Toolbar
+  static om/IQuery
+  (query [this] [] [{:toolbar/categories (om/get-query ToolbarCategory)}])
+  Object
+  (render [this]
+    (let [{:keys [toolbar/categories]} (om/props this)]
+      (dom/div nil
+        (dom/button #js {:onClick #(om/transact! this '[(server-interaction/group-items)])} "Trigger Post Mutation")
+        (dom/button #js {:onClick #(om/transact! this '[(server-interaction/group-items-reset)])} "Reset")
+        (dom/ul nil
+          (map ui-toolbar-category categories))))))
+
+(defmethod m/mutate 'server-interaction/group-items-reset [{:keys [state]} k p]
+  {:action (fn [] (reset! state (om/tree->db component-query sample-server-response true)))})
+
+(defn add-to-category
+  "Returns a new db with the given item added into that item's category."
+  [db item]
+  (let [category-ident (:item/category item)
+        item-location (conj category-ident :category/items)]
+    (update-in db item-location (fnil conj []) (om/ident ItemQuery item))))
+
+(defn group-items
+  "Returns a new db with all of the items sorted by name and grouped into their categories."
+  [db]
+  (let [sorted-items (->> db :items/by-id vals (sort-by :item/name))
+        category-ids (-> db (:categories/by-id) keys)
+        clear-items (fn [db id] (assoc-in db [:categories/by-id id :category/items] []))
+        db (reduce clear-items db category-ids)
+        db (reduce add-to-category db sorted-items)
+        all-categories (->> db :categories/by-id vals (mapv #(om/ident CategoryQuery %)))]
+    (assoc db :toolbar/categories all-categories)))
+
+
+(defmethod m/mutate 'server-interaction/group-items [{:keys [state]} k p]
+  {:action (fn [] (swap! state group-items))})
 
 (defcard-doc
   "
@@ -23,13 +113,61 @@
   lead to out-of-order execution, and impossible-to-reason-about recovery from errors).
   - You may provide fallbacks that indicate error-handling mutations to run on failures
 
-  ## Reads
+  ## General Theory of Operation
 
-  Remote reads in Untangled are explicit calls to the load functions in the `untangled.client.data-fetch` namespace, of
-  which there are two pairs:
+  Untangled uses the primitives of Om Next, but one of the primary contributions it makes to that model is the
+  realization that the following use-cases are by far the most common:
+
+  - Reading data on initial app startup
+  - Triggering loads on user-based events (or perhaps timeouts)
+
+  In both cases, the implementation of the remoting in Om Next is very similar:
+
+  - Write something into your application state database the indicates you want to do some remote operation
+      - This triggers an internal parsing that you would normally have to interact with in order to decide
+        what to ask the server.
+      - Note that 'writing something to your app state' is a *mutation*.
+  - Morph the UI query into something your server would rather see (you don't want to write server queries for
+    every darn UI tree you can think of on the client side)
+  - Morph the response *back into UI shape*, and normalize it. Note this is a data transform aided by Om primitives.
+
+  So, the key realization is the *in practice Om reads requires some kind of **mutation** before a read can occur*! The
+  additional realization is the after the read run, and you've normalized data into the database, you often *want* to
+  morph the database into something special on your UI that the server need not understand.
+
+  So, Untangled provides the 'triggering' mutations, and gives you a way to hook into the result so that you can
+  do this post-transform when the remote read is complete.
+
+  ## The `untangled/load` Mutation
+
+  Untangled has a built-in mutation called `untangled/load`. This mutation *can* be used directly from `om/transact!` (and often is).
+
+  The `load` mutation does the following basic things:
+
+  - Places your query onto a built-in queue in your app state of things to load
+  - The mutation is marked `remote`, so it will cause the networking side of Om to trigger.
+  - The networking plumbing of Untangled looks in the queue when it sees a `load` mutation. It elides the `load` from the remote request itself, and
+    instead sends the desired query/queries, then properly merges the results.
+  - It may (optionally) place load markers in your app state so you can show in-progress indicators
+  - It may (optionally) run post-mutation transforms on the database (if you supply them)
+
+  The mutation can be used from application startup or anywhere you'd run a mutation (`transact!`). This covers almost
+  all of the possible remote data integration needs!
+
+  First, let's cover some helper functions that make using this mechanism a bit easier.
+
+  ## Load helpers
+
+  Untangled includes a few helper functions that can assist you in invoking the `untangled/load` mutation.
 
   1. `load-data` and `load-data-action`
   2. `load-field` and `load-field-action`
+
+  The former of each pair are methods the directly invoke a `transact!` to place load requests into a load queue.
+
+  The latter of each pair are low-level implementation method that can be used to *compose* remote reads with your
+  own mutations (e.g. you want to switch to a new area of the UI (local mutation), but also trigger a *remote read* to load the
+  content of that UI at the same time).
 
   ### Load Data vs. Load Field
 
@@ -39,9 +177,10 @@
   The only difference is that `load-data` must be passed a complete query while `load-field` uses the passed-in component
   to create its query.
 
-  So, `load-field` focuses the component's query to the specified field, associates the component's ident with the query,
+  `load-field` is really just a helper for a common use-case: loading a field of some specific thing on the screen. It
+   focuses the component's query to the specified field, associates the component's ident with the query,
   and asks the UI to re-render all components with the calling component's ident after the load is complete. Since `load-field`
-  requires a component to build the query sent to the server, it cannot be used with the reconciler. If you want to load data
+  requires a component to build the query sent to the server it cannot be used with the reconciler. If you want to load data
   from your server when the app initially loads, you must use `load-data` with the reconciler passed to the
   `:started-callback` function when creating a new untangled client application.
 
@@ -102,6 +241,7 @@
   **do not** call `om/transact!`, and are used to initialize a load inside of one of your custom client-side mutations.
 
   Let's look at an example of a standard load. Say you want to load a list of people from the server:
+
   ```
   (require [untangled.client.data-fetch :as df])
 
@@ -160,18 +300,62 @@
   the code to use the action-suffixed load instead. To learn more about the dangers of loads and lifecycle methods, see
   the [reference on loading data]().
 
-  ### How reads work : `untangled/load`
+  ### Using `untangled/load` Directly
 
   The helper functions described above simply trigger a built-in Untangled mutation called `untangled/load`, which you are
-  allowed (and sometimes encouraged) to use directly. It is the Untangled method of doing follow-on reads after a remote
-  mutation:
+  allowed (and sometimes encouraged) to use directly. The arguments to this mutation include:
+
+  - `query`: The specific query you'd like to send to the server
+  - `post-mutation`: A symbol indicating a mutation to run after the load completes
+  - `without`: A set of keywords that should be (recursively) removed from `query`
+  - `refresh`: A vector of keywords that should cause re-rendering after the load.
+  - `parallel`: True or false. If true, bypasses the sequential network queue
+  - `ident`: An ident. Used if you want the query to be morphed into an ident join. Used by
+  `load-field`.
+  - `field`: A keyworkd. Used if you want to focus the query to a specific single item. Used by
+  `load-field`.
+  - `marker`: True or false. If true, places a loading marker in place of the first top-level key in the query,
+    of in place of the given database object if `ident` and `field` are set (e.g. by `load-field`)
+
+  For most direct use-cases you'll probably skip using the `load-field` specific parameters. You can read
+  the source of `load-field` if you'd like to simulate it by hand.
+
+  The most common use for a direct call to the `untangled/load` mutation is obtaining a value from the server
+  after running some mutation that had a (potential) remote effect.
+
+  #### Getting a Remote Value after a Mutation
+
+  The most common direct use of `untangled/load` is doing remote follow-on reads after a mutation (which itself may
+  be remote).
+
+  Note the difference. The following follow-on read is *always* just a local re-render in Untangled (in stock Om,
+  the `:something` keyword can also trigger a remote read, though you'd have to write logic into the parser
+  to figure it out):
 
   ```
-  (om/transact! this '[(app/do-some-thing) (untangled/load {:query [:a]})])
+  (om/transact! this '[(app/do-some-thing) :something])
   ```
 
-  The normal form of follow-on keywords (for re-rendering the UI) works fine, it will just never trigger remote
-  reads.
+  If what you want instead is `do-some-thing` and the read `:something` from the server, you instead want:
+
+  ```
+  (om/transact! this '[(app/do-some-thing) (untangled/load {:query [:something] :refresh [:something})])
+  ```
+
+  This has both a clear benefit and cost with respect to stock Om:
+
+  - The benefits are:
+      - Non-opaque reasoning
+      - No need to write parser logic to figure out if you want to do remote reads
+  - The costs are:
+      - The UI is aware of what is remote, and what is local (in stock Om, the UI is completely unconcerned
+        about remoting.)
+
+  In practice, we've found that the idea that something involves a server is pretty clear-cut, so the ability
+  to completely abstract it away really isn't that necessary pragmatically, and the cost of writing
+  the behind-the-scenes logic related making a parser trigger remote reads is somewhat high.
+
+  #### A bit More About How it Works
 
   The `untangled/load` mutation does a very simple thing: It puts a state marker in a well-known location in your app state
   to indicate that you're wanting to load something (and returns `:remote true`). This causes the network
@@ -181,8 +365,8 @@
      - For each load, it places a state marker in the app state at the target destination for the query data
      - All loads that are present are combined together into a single Om query
   - It looks for other mutations
-  - It puts the 'other mutations' on the send queue
-  - It puts the derived query from the `untangled/load` onto the send queue
+  - It puts the 'other mutations' on the send queue (iff they are marked `:remote`)
+  - It puts the derived query/queries from the `untangled/load`s onto the send queue.
 
   A separate \"thread\" (core async go block) watches the send queue, and sends things one-at-a-time (e.g. each entry
   in the queue is processed in a sequence, ensuring you can reason about things sequentially). The one-at-a-time
@@ -218,13 +402,14 @@
 
   ### Data merge
 
-  When the server responds Untangled will merge the result into the application client database. It overrides the built-in Om
+  Untangled will automatically merge the result of loads into the application client database.
+  It overrides the built-in Om
   shallow merge. Untangled's data merge has a number of extension that are useful for
   simple application reasoning:
 
-  1. Merge is a deep merge, but with extra logic
+  #### Deep Merge
 
-  Untangled merges your response via deep merge, meaning that existing data is not wiped out by default. Unfortunately,
+  Untangled merges the response via a deep merge, meaning that existing data is not wiped out by default. Unfortunately,
   this causes a different problem. Let's say you have two UI components that ask for similar information:
 
   Component A asks for [:a]
@@ -246,17 +431,127 @@
       not asked for alone). This does indicate that your UI is possibly in a state inconsistent with the server, which
       is the reason for the \"avoid this case\" advice.
 
-  ### Normalization
+  #### Normalization
 
-  Normalization is always *on* in Untangled. You are forced to use the default database format. If you've passed an
-  atom as initial state then initial state is assumed to be pre-normalized, but normalization will always be on. Loads
-  must use real composed queries from the UI for normalization to work (the om `get-query` function adds info to assit
+  Normalization is always *on* in Untangled because your application will not work correctly if you don't normalize the
+  data in your database. Loads must use real composed queries from the UI for normalization to work (the om `get-query` function adds info to assit
   with normalization).
 
   Therefore, you almost *never* want to use a hand-written query that has not been placed on a `defui`. It is perfectly
   acceptable to define queries via `defui` to ensure normalization will work, and this will commonly be the case if your
   UI needs to ask for data in a structure different from what you want to run against the server.
 
+  For example, say we have some items in our database, and we're planning on showing them grouped by category. We *could*
+  write a server-side handler that could return them this way, but the grouping in the UI is really more of a UI
+  concern (we might also want them sorted by name, etc, etc.). It makes a lot more sense to define a single server-side
+  query that can return the items we want, and then define a UI-side transformation to run as a post-mutation that
+  forms them into the desired structure for the UI.
+
+  So, we need the data in our client database (normalized), but our UI might only have queries related to the grouped
+  view. Thus, we don't have a UI query that meets our server query needs.
+
+  In this situation we could write the following query-and-ident-only components:
+  "
+  (dc/mkdn-pprint-source ItemQuery)
+  (dc/mkdn-pprint-source CategoryQuery)
+  "
+
+  The proper way to now ask the server would be to do something like join this query into a top-level key:
+
+  "
+  (dc/mkdn-pprint-source component-query)
+  "
+
+  The resulting query, if you were to ask for it with `om/get-query` would look the same as this hand-written
+  query:
+
+  "
+  (dc/mkdn-pprint-source hand-written-query)
+  "
+  However, if you were to use the hand-written query then Om would not know how to normalize the server result
+  into your database because the Ident functions would not be known (the `get-query` function adds metadata to
+  the query to tell Om how to normalize the result`).
+
+  The following card demonstrates the difference of merging the following server response: "
+  (dc/mkdn-pprint-source sample-server-response))
+
+(defn merge-using-query [state-atom query data]
+  (let [db (om/tree->db query data true)]
+    (swap! state-atom assoc :resulting-database db)))
+
+(defcard query-response-demo
+  "This card shows the difference between using hand-written queries and queries pulled from
+  defui components (which need not have UI)."
+  (fn [state-atom _]
+    (dom/div nil
+      (dom/button #js {:onClick #(merge-using-query state-atom hand-written-query sample-server-response)} "Merge with Hand-Written Query")
+      (dom/button #js {:onClick #(merge-using-query state-atom component-query sample-server-response)} "Merge with Component Query")))
+  {}
+  {:inspect-data true})
+
+(defcard-doc
+  "
+  and now perhaps you can see the true power of Untangled's approach to data loading! One server query implementation
+  can now serve any of your needs for displaying these items.
+
+  #### Post Mutations
+
+  We've seen the power of using component to generate queries that are simple for the server (even though the UI might
+  want to display the result in a more complex way). Now, we'll finish the example by showing you how post mutations
+  can complete the story (and for Om users, complete your understanding of why a custom parser isn't necessary in Untangled).
+
+  In the prior section we talked about obtaining items that have categories. We wanted a simple server query so that
+  obtaining the items was the same no matter what kind of UI was going to use them (a display of items grouped by category,
+  for example).
+
+  ```text
+  Simple Query Result from Server
+              |
+     auto merge/normalize
+              |
+             \\|/
+      Items with Categories
+              |
+         post mutation
+              |
+             \\|/
+      Items by Category
+  ```
+
+  We all understand doing these kinds of transforms, so this technique gives some real concrete advantages overall:
+
+  - Simple query to the server (only have to write one query handler)
+      - Independent of the server's database structure (do items belong to categories, or just have them, etc).
+  - Simple layout in resulting UI database (normalized into tables and a graph)
+  - Straightforward data transform into what we want to show
+
+  So, let's add in the idea that the UI really wants to show a Toolbar that contains the items
+  grouped by category, but our sample load is as before.
+
+  The Untangled post-mutation can defined as:
+
+  ```clojure
+  (defmethod m/mutate 'server-interaction/group-items [{:keys [state]} k p]
+    {:action (fn [] (swap! state group-items))})
+  ```
+
+  Where the UI components and helper functions are:
+
+  "
+  (dc/mkdn-pprint-source ToolbarItem)
+  (dc/mkdn-pprint-source ToolbarCategory)
+  (dc/mkdn-pprint-source Toolbar)
+  (dc/mkdn-pprint-source add-to-category)
+  (dc/mkdn-pprint-source group-items))
+
+(defcard toolbar-with-items-by-category
+  "This card allows you to simulate the post-mutation defined above, and see the resulting UI and database change. The
+  Reset button will restore the db to the pre-mutation state, so you can A/B compare the before and after picture."
+  (untangled-app Toolbar)
+  (om/tree->db component-query sample-server-response true)
+  {:inspect-data true})
+
+(defcard-doc "
   ### Parameterized Reads
 
   You may add parameters to your remote reads using an optional argument to data fetch:
