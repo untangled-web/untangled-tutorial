@@ -13,4 +13,7 @@ tests:
 help:
 	@ make -rpn | sed -n -e '/^$$/ { n ; /^[^ ]*:/p; }' | sort | egrep --color '^[^ ]*:'
 
-.PHONY: dev tutorial tests help
+pages:
+	lein cljsbuild once pages
+
+.PHONY: dev tutorial tests help pages
