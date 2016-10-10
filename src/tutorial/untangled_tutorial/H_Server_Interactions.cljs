@@ -619,14 +619,14 @@
   ```clojure
   (require [untangled.client.mutations :refer [mutate]])
 
-  (defmutation mutate 'some/mutation [env k params]
+  (defmethod mutate 'some/mutation [env k params]
     ;; sends this mutation with the same `env`, `k`, and `params` arguments to the server
     {:remote true
      :action (fn[] ... )})
   ```
 
   ```clojure
-  (defmutation mutate 'some/mutation [{:keys [ast] :as env} k params]
+  (defmethod mutate 'some/mutation [{:keys [ast] :as env} k params]
     ;; adds the key-value pair {:extra :data} to the `params` that are sent to the server
     {:remote (assoc-in ast [:params :extra] :data)
      :action (fn[] ...)})
@@ -634,7 +634,7 @@
   ```
 
   ```clojure
-  (defmutation mutate 'some/mutation [{:keys [ast] :as env} k params]
+  (defmethod mutate 'some/mutation [{:keys [ast] :as env} k params]
     ;; changes the mutation dispatch key -- the assumption is that the server processes
     ;; 'some/mutation as part of a different server-side mutation
     {:remote (assoc ast :key 'server/mutation :dispatch-key 'server/mutation)
@@ -656,11 +656,11 @@
   ```
   (require [untangled.client.mutations :refer [mutate]])
 
-  (defmutation mutate 'some/mutation [{:keys [state] :as env} k params]
+  (defmethod mutate 'some/mutation [{:keys [state] :as env} k params]
     {:remote true
      :action (fn [] (swap! state do-stuff)})
 
-  (defmutation mutate 'handle-failure [{:keys [state] :as env} k {:keys [error] :as params}]
+  (defmethod mutate 'handle-failure [{:keys [state] :as env} k {:keys [error] :as params}]
     ;; fallback mutations are designed to recover the client-side app state from server failures
     ;; so, no need to send to the server
     {:action (fn [] (swap! state undo-stuff error)))
