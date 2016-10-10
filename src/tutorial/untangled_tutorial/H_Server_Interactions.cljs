@@ -15,13 +15,13 @@
 
 (defui ^:once CategoryQuery
   static om/IQuery
-  (query [this] [] [:db/id :category/name])
+  (query [this] [:db/id :category/name])
   static om/Ident
   (ident [this props] [:categories/by-id (:db/id props)]))
 
 (defui ^:once ItemQuery
   static om/IQuery
-  (query [this] [] [:db/id {:item/category (om/get-query CategoryQuery)} :item/name])
+  (query [this] [:db/id {:item/category (om/get-query CategoryQuery)} :item/name])
   static om/Ident
   (ident [this props] [:items/by-id (:db/id props)]))
 
@@ -38,7 +38,7 @@
 
 (defui ^:once ToolbarItem
   static om/IQuery
-  (query [this] [] [:db/id :item/name])
+  (query [this] [:db/id :item/name])
   static om/Ident
   (ident [this props] [:items/by-id (:db/id props)])
   Object
@@ -50,7 +50,7 @@
 
 (defui ^:once ToolbarCategory
   static om/IQuery
-  (query [this] [] [:db/id :category/name {:category/items (om/get-query ItemQuery)}])
+  (query [this] [:db/id :category/name {:category/items (om/get-query ToolbarItem)}])
   static om/Ident
   (ident [this props] [:categories/by-id (:db/id props)])
   Object
@@ -65,7 +65,7 @@
 
 (defui ^:once Toolbar
   static om/IQuery
-  (query [this] [] [{:toolbar/categories (om/get-query ToolbarCategory)}])
+  (query [this] [{:toolbar/categories (om/get-query ToolbarCategory)}])
   Object
   (render [this]
     (let [{:keys [toolbar/categories]} (om/props this)]
