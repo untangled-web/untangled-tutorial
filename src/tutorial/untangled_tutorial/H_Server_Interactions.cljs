@@ -163,7 +163,7 @@
   1. `load-data` and `load-data-action`
   2. `load-field` and `load-field-action`
 
-  The former of each pair are methods the directly invoke a `transact!` to place load requests into a load queue.
+  The former of each pair are methods that directly invoke a `transact!` to place load requests into a load queue.
 
   The latter of each pair are low-level implementation method that can be used to *compose* remote reads with your
   own mutations (e.g. you want to switch to a new area of the UI (local mutation), but also trigger a *remote read* to load the
@@ -312,7 +312,7 @@
   - `parallel`: True or false. If true, bypasses the sequential network queue
   - `ident`: An ident. Used if you want the query to be morphed into an ident join. Used by
   `load-field`.
-  - `field`: A keyworkd. Used if you want to focus the query to a specific single item. Used by
+  - `field`: A keyword. Used if you want to focus the query to a specific single item. Used by
   `load-field`.
   - `marker`: True or false. If true, places a loading marker in place of the first top-level key in the query,
     of in place of the given database object if `ident` and `field` are set (e.g. by `load-field`)
