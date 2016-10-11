@@ -20,6 +20,7 @@
     untangled-tutorial.I-Building-A-Server-Exercises
     untangled-tutorial.J-Putting-It-Together
     untangled-tutorial.K-Testing
+    untangled-tutorial.M10-Advanced-UI
     untangled-tutorial.M30-Advanced-Mutation
     untangled-tutorial.M40-Advanced-Server-Topics
     untangled-tutorial.Z-Further-Reading
