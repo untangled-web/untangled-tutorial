@@ -18,6 +18,7 @@
                  [org.clojure/core.cache "0.6.5"]
                  [navis/untangled-client "0.5.8-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
+                 [cljsjs/victory "0.9.0-0"]
                  [navis/untangled-server "0.6.2"]
                  [navis/untangled-spec "0.3.9" :scope "test"]
                  [navis/untangled-datomic "0.4.11"]]
