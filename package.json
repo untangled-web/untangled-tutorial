@@ -1,5 +1,5 @@
 {
-  "name": "tutorial-spec",
+  "name": "devguide-spec",
   "version": "1.0.0",
   "description": "Testing",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:untangled-web/untangled-tutorial.git"
+    "url": "git@github.com:untangled-web/untangled-devguide.git"
   },
   "author": "",
   "license": "MIT"

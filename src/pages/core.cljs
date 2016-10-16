@@ -1,7 +1,7 @@
 (ns core
   (:require
     devcards.core
-    untangled-tutorial.tutorial))
+    untangled-devguide.guide))
 
-;; This file is for running the tutorial on github pages.
+;; This file is for running it on github pages.
 (devcards.core/start-devcard-ui!)

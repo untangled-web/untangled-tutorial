@@ -16,7 +16,7 @@ system is based).
 
 The following builds are configured in figwheel:
 
-- `tutorial`: This is the main guide.
+- `devguide`: This is the main guide.
 
 - `test`: Tests for the client application (for you to see/extend)
 
@@ -52,7 +52,7 @@ You should now be able to run the builds via the IDE.
 ### Command line
 
 ```
-JVM_OPTS="-Dtutorial" lein run -m clojure.main script/figwheel.clj
+JVM_OPTS="-Ddevguide" lein run -m clojure.main script/figwheel.clj
 ```
 
 ## Accessing the Guide and the Tests:
