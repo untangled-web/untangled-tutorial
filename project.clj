@@ -1,5 +1,5 @@
-(defproject untangled-tutorial "0.1.0-SNAPSHOT"
-  :description "A Tutorial for the Untangled Web Framework"
+(defproject untangled-devguide "0.1.0-SNAPSHOT"
+  :description "A Developers Guide for the Untangled Web Framework"
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.8.0"]
@@ -24,7 +24,7 @@
                  [navis/untangled-datomic "0.4.11"]]
 
   ; server source paths
-  :source-paths ["src/server" "src/shared" "test/server" "test/shared" "src/tutorial"]
+  :source-paths ["src/server" "src/shared" "test/server" "test/shared" "src/devguide"]
   :test-paths ["test/server" "test/shared"]
 
   :plugins [[lein-cljsbuild "1.1.4"]
@@ -51,7 +51,7 @@
   ; i18n lein plugin config
   :untangled-i18n {:default-locale        "en-US"
                    :translation-namespace "app.i18n"
-                   :source-folder         "src/tutorial"
+                   :source-folder         "src/devguide"
                    :target-build          "i18n"}
 
   :cljsbuild {:builds [{:id           "test"
@@ -80,14 +80,14 @@
                                        :output-dir    "resources/private/js"
                                        :optimizations :none
                                        }}
-                       {:id           "tutorial"
+                       {:id           "devguide"
                         :figwheel     {:devcards true}
-                        :source-paths ["src/tutorial" "src/shared"]
+                        :source-paths ["src/devguide" "src/shared"]
                         :compiler     {
-                                       :main           untangled-tutorial.tutorial
-                                       :asset-path     "js/tutorial"
-                                       :output-to      "resources/public/js/tutorial.js"
-                                       :output-dir     "resources/public/js/tutorial"
+                                       :main           untangled-devguide.guide
+                                       :asset-path     "js/devguide"
+                                       :output-to      "resources/public/js/devguide.js"
+                                       :output-dir     "resources/public/js/devguide"
                                        :parallel-build true
                                        :foreign-libs   [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                          :requires ["cljsjs.codemirror"]
@@ -96,7 +96,7 @@
                                                          :requires ["cljsjs.codemirror"]
                                                          :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
                        {:id           "pages"
-                        :source-paths ["src/tutorial" "src/pages" "src/shared"]
+                        :source-paths ["src/devguide" "src/pages" "src/shared"]
                         :compiler     {
                                        :main          core
                                        :devcards      true

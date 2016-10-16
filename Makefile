@@ -1,10 +1,10 @@
 LEIN_RUN = rlwrap lein run -m clojure.main ./script/figwheel.clj
 
-tutorial:
-	JVM_OPTS="-server -Dtutorial" ${LEIN_RUN}
+devguide:
+	JVM_OPTS="-server -Ddevguide" ${LEIN_RUN}
 
 dev:
-	JVM_OPTS="-server -Dtest -Dtutorial" ${LEIN_RUN}
+	JVM_OPTS="-server -Dtest -Ddevguide" ${LEIN_RUN}
 
 tests:
 	npm install
@@ -16,4 +16,4 @@ help:
 pages:
 	lein cljsbuild once pages
 
-.PHONY: dev tutorial tests help pages
+.PHONY: dev devguide tests help pages

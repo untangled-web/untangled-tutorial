@@ -1,10 +1,10 @@
 (ns app.tests-to-run
   (:require
     app.sample-spec
-    app.testing-tutorial-solutions-spec
+    app.testing-devguide-solutions-spec
     app.exercises-solutions-spec
     ; TODO: Import your additional specs here
-    app.testing-tutorial-spec))
+    app.testing-devguide-spec))
 
 ;********************************************************************************
 ; IMPORTANT:
