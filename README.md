@@ -52,7 +52,7 @@ You should now be able to run the builds via the IDE.
 ### Command line
 
 ```
-JVM_OPTS="-Ddevguide" lein run -m clojure.main script/figwheel.clj
+JVM_OPTS="-Ddevguide -Dtest" lein run -m clojure.main script/figwheel.clj
 ```
 
 ## Accessing the Guide and the Tests:

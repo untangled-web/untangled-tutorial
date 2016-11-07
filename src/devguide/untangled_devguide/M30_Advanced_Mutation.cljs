@@ -55,7 +55,10 @@
   IMPORTANT: The general interaction with the world requires integration of external data (often in a tree format) with
   your app database (normalized graph of maps/vectors). As a result, you almost always want an Om-managed query when
   integrating data, so that the result is normalized. This is also why mutations don't have return values: there is
-  no query to use to merge such a result.
+  no query to use to merge such a result (in stock Om Next you 
+  could override merge to try to address this, but we feel that 
+  creates a concentration of cross-cutting concerns in `merge` with 
+  little practical benefit).
 
   ### Creating Components *Just* For Their Queries
 
