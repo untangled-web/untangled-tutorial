@@ -2,9 +2,9 @@
   :description "A Developers Guide for the Untangled Web Framework"
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.229"]
-                 [org.omcljs/om "1.0.0-alpha46"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
+                 [org.clojure/clojurescript "1.9.293"]
+                 [org.omcljs/om "1.0.0-alpha47"]
                  [com.datomic/datomic-free "0.9.5404" :exclusions [org.clojure/tools.cli]]
                  [com.google.guava/guava "19.0"]
                  [commons-codec "1.10"]
@@ -16,7 +16,7 @@
                  [lein-doo "0.1.7" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/core.cache "0.6.5"]
-                 [navis/untangled-client "0.6.0-SNAPSHOT"]
+                 [navis/untangled-client "0.6.0"]
                  [cljsjs/d3 "3.5.7-1"]
                  [cljsjs/victory "0.9.0-0"]
                  [navis/untangled-server "0.6.2"]
@@ -30,7 +30,7 @@
   :plugins [[lein-cljsbuild "1.1.4"]
 
             ; Run server side tests with spec output
-            [com.jakemccrary/lein-test-refresh "0.15.0"]
+            [com.jakemccrary/lein-test-refresh "0.17.0"]
 
             ; Used for running CI (command line) client tests
             [lein-doo "0.1.7" :exclusions [org.clojure/tools.reader]]
@@ -113,7 +113,7 @@
 
   :profiles {
              :dev {
-                   :dependencies [[devcards "0.2.1-7"]
+                   :dependencies [[devcards "0.2.2"]
                                   [figwheel-sidecar "0.5.7" :exclusions [ring/ring-core org.clojure/tools.analyzer.jvm org.clojure/tools.analyzer org.clojure/core.memoize org.clojure/data.priority-map]]
                                   [com.cemerick/piggieback "0.2.1"]
                                   [binaryage/devtools "0.6.1"]
