@@ -172,19 +172,18 @@
 
   ### Load vs. Load Data vs. Load Field
 
-  All of these function families are calls to the built-in `untangled/load` mutation behind the scenes, so requests made by these functions
-  go through the same networking layer and have the same customizations through their named parameters (see the doc strings
+  All of these functions are calls to the built-in `untangled/load` mutation behind the scenes, so requests made by these functions
+  go through the same networking layer and have similar named parameters (see the doc strings
   in the [data-fetch namespace](https://github.com/untangled-web/untangled-client/blob/master/src/untangled/client/data_fetch.cljs)).
   The only difference is in how the query is specified. `load` requires a top-level keyword and a component, `load-data`
   must be passed a complete query, and `load-field` uses the passed-in component and a field name to create its query.
+  `load` and `load-data` are subtle variants with the former being more consice, and the latter more generally flexible.
 
   `load-field` is really just a helper for a common use-case: loading a field of some specific thing on the screen. It
-   focuses the component's query to the specified field, associates the component's ident with the query,
+  focuses the component's query to the specified field, associates the component's ident with the query,
   and asks the UI to re-render all components with the calling component's ident after the load is complete. Since `load-field`
-  requires a component to build the query sent to the server it cannot be used with the reconciler. If you want to load data
-  from your server when the app initially loads, you must use `load-data` with the reconciler passed to the
-  `:started-callback` function when creating a new untangled client application.
-
+  requires a component to build the query sent to the server it cannot be used with the reconciler. 
+  
   #### Use case - Initial load
 
   In Untangled, initial load is an explicit step. You simply put calls to `load` or `load-data` in your app start callback.
@@ -204,13 +203,14 @@
                                    :post-mutation 'app/build-views)))
   ```
 
-  In the above example the client is created (which must be mounted as a separate step). Once mounted the application
-  will call the `:started-callback` which in turn will trigger a load. This helper functions are really a call to
+  In the above example the client is created (which must be mounted as a separate step). Once the application is mounted 
+  it will call the `:started-callback` which in turn will trigger a load. These helper functions are really a call to
   om `transact!` that places `ready-to-load` markers in the app state, which in turn triggers the network plumbing. The
-  network plumbing pulls these and processes them via the server and all of the normalization bits of Om (and Untangled).
+  network plumbing pulls these from the app state and processes them via the server and all of the normalization bits of 
+  Om (and Untangled).
 
   The `:without` parameter will elide portions of the query. So for example, if you'd like to lazy load some portion of the
-  collection (e.g. comments on each item) at a later time, you can prevent the server from being asked.
+  collection (e.g. comments on each item) at a later time you can prevent the server from being asked to send them.
 
   The `:post-mutation` parameter is the name of the mutation you'd like to run on a successful result of the query. If there
   is a failure, then a failure marker will be placed in the app state, which you can have programmed your UI to react to
@@ -227,10 +227,11 @@
   which will load the specific entity (assuming your server responsds with it) into you client database. This could be
   used, for example, to refresh a particular entity in your client database.
 
-  Giving a post mutation would allow you to further integrate that entity into you views.
+  Giving a post mutation as a parameter would allow you to further integrate that entity into you views. Post mutations are 
+  run after the query, and allow you to modify the application state as you see fit.
 
-  NOTE: the `untangled.core/integrate-ident!` function is particularly handy for peppering the resulting ident
-  around the views in a post mutation.
+  NOTE: the `untangled.core/integrate-ident!` function is particularly handy for peppering the ident of the resulting item
+  around the views via a post mutation.
 
   #### Use case - Loading a collection into an entity
 
@@ -244,12 +245,14 @@
   { :friends { :tab { :people [] }}}
   ```
 
-  The following load would send the desired query, and rewrite the result into the desired location (while also
+  The following load would send the desired query and rewrite the result into the desired location (while also
   normalizing the incoming People):
 
   ```
   (df/load app :all-people Person {:target [:friends :tab :people]})
   ```
+
+  resulting in:
 
   ```
   { :friends { :tab { :people [[:people/by-id 1] [:people/by-id 2]] }}
@@ -266,7 +269,7 @@
   (df/load app :all-people Person {:params {:limit 10} :target [:friends :tab :people]})
   ```
 
-  would result in `{:limit 10}` being visible in the server query parameters:
+  would result in `{:limit 10}` being visible in the parameters when parsing the server query:
 
   ```
   ;; assuming your server-side read is a multimethod:
@@ -278,10 +281,12 @@
 
   One common operation is to load data in response to a user interaction. Interestingly, the query that you might
   have used in the initial load use case might have included UI queries for data you didn't want to fetch yet. So, we want
-  to note that the initial load use-case supports eliding part of the query. For example, you can load an item without,
-  say, comments. Later, when the user wants to see comments you can supply a button that can load the comments on demand.
+  to note that the initial load use-case supports eliding part of the query. For example, you can for example load an item without
+  comments. Later, when the user wants to see comments you can supply a button that can load the comments on demand. The earlier
+  use case on startup demonstrated this technique.
 
-  This is directly supported by `load-field`, which derives the query to send to the server from the component itself!
+  The `load-field` function, which derives the query to send to the server from the component itself, can be used to trigger the 
+  load of the subsequent data:
 
   ```
   (load-field this :comments)
@@ -293,6 +298,10 @@
   For example, say you had:
 
   ```
+  (defui Comment 
+     static om/IQuery
+     (query [this] [:author :text]))
+
   (defui Item
      static om/IQuery
      (query [this] [:id :value {:comments (om/get-query Comment)}])
@@ -303,21 +312,16 @@
         ...
         (dom/button #js { :onClick #(df/load-field this :comments) } \"Load comments\")
         ...)
-
-  ;; Note that the call to load field above is the same as:
-      (df/load-data this (om/full-query this [:comments])
-        :ident (om/get-ident this)
-        :refresh [(om/get-ident this)])
   ```
 
   then clicking the button will result in the following query to the server:
 
   ```
-  [{[:item/by-id 32] [{:comments [:other :props]]}]
+  [{[:item/by-id 32] [{:comments [:author :text]]}]
   ```
 
   and the code to write for the server is now trivial. The dispatch key is :item/by-id, the 32 is accessible on the AST,
-  and the query is a pull fragment that will work relative to an item in your (assuming Datomic) database!
+  and the query is a pull fragment that indicates the exact data to pull from your server database.
 
   Furthermore, the underlying code can easily put a marker in place of that data in the app state so you can show the
   'load in progress' marker of your choice.
@@ -326,9 +330,10 @@
 
   ### Load vs. Load-Action
 
-  Both `load-field` and `load-data` will call `om/transact!` under the hood, targeting untangled's built-in `untangled/load`
-  mutation, which is responsible for sending your request to the server. By contrast, `load-field-action` and `load-data-action`,
-  **do not** call `om/transact!`, and are used to initialize a load inside of one of your custom client-side mutations.
+  `load`, `load-field`, and `load-data` will call `om/transact!` under the hood, targeting untangled's built-in `untangled/load`
+  mutation, which is responsible for sending your request to the server. By contrast, `load-action`, `load-field-action`,
+  and `load-data-action` **do not** call `om/transact!`, but can be used to initialize a load inside of one of your own
+  client-side mutations.
 
   Let's look at an example of a standard load. Say you want to load a list of people from the server:
 
@@ -362,38 +367,44 @@
   for a running example.
 
   The action-suffixed load functions are useful when performing an action in the user interface that must *both* modify
-  the client-side database *and* load data from the server. They must be used with `untangled.client.data-fetch/remote-load`,
-  which converts the remote mutation key for your mutation to the `untangled/load` key:
+  the client-side database *and* load data from the server. **NOTE**: You must use the result of the
+  `untangled.client.data-fetch/remote-load` funtion as the value of the `:remote` key in the mutation return value.
 
   ```
   (require [untangled.client.data-fetch :as df]
            [untangled.client.mutations :refer [mutate]]
-           [app.ui :as ui] ;; namespace with defuis
-           )
+           [app.ui :as ui]) ;; namespace with defuis
 
-  (defmethod mutate 'app/change-view [{:keys [state] as env} _ {:keys [new-view]}]
-    {:remote (df/remote-load env)
+  (defmethod mutate 'app/change-view [{:keys [state] :as env} _ {:keys [new-view]}]
+    {:remote (df/remote-load env) ;; (2)
      :action (fn []
                 (let [new-view-query (cond
                                        (= new-view :main) (om/get-query ui/Main)
                                        (= new-view :settings) (om/get-query ui/Settings)]
-                (df/load-data-action state new-view-query)
+                (df/load-data-action state new-view-query) ;; (1)
                 (swap! state update :app/current-view new-view))})
   ```
-  This snippet defines a mutation that (1) modifies the app state to display the view passed in via the mutation parameters,
-  and (2) loads the data for that view. A few important points:
 
-  1. If an action thunk calls an action-suffixed load, then it MUST call `remote-load` for the remote keyword.
-  2. The `remote-load` function *changes* the mutation's dispatch key to `untangled/load` when sending it to the remote.
-  So, a mutation that uses an action-suffixed load cannot have a server-side implementation.
-  3. If you find yourself wanting to put a call to `load-data` or `load-field` in a React Lifecycle method, try reworking
-  the code to use the action-suffixed load instead. To learn more about the dangers of loads and lifecycle methods, see
-  the [reference on loading data]().
+  This snippet defines a mutation that modifies the app state to display the view passed in via the mutation parameters
+  and loads the data for that view. A few important points:
+
+  1. If an action thunk calls one or more `action`-suffixed load functions (which do nothing but queue the load
+     request) then it MUST also use a call to `remote-load` for the remote keyword.
+  2. The `remote-load` function *changes* the mutation's dispatch key to `untangled/load` which in turn triggers
+     the networking layer that one or more loads are ready.
+  3. If you find yourself wanting to put a call to any `load-*` in a React Lifecycle method try reworking
+     the code to use your own mutations (which can check if a load is really needed) and the use the action-suffixed
+     loads instead. Lifecycle methods are often misunderstood, leading to incorrect behaviors like triggering loads
+     over and over again. To learn more about the dangers of loads and lifecycle methods, see the [reference
+     on loading data]().
 
   ### Using the `untangled/load` Mutation Directly
 
-  The helper functions described above simply trigger a built-in Untangled mutation called `untangled/load`, which you are
-  allowed (and sometimes encouraged) to use directly. The arguments to this mutation include:
+  The helper functions described above simply trigger a built-in Untangled mutation called `untangled/load`
+  (the `*-action` variants do so by modifying the remote mutation AST via the `remote-load` helper function).
+
+  You are allowed (and sometimes encouraged) to use this mutation directly in a call to `transact!`.
+  The arguments to this mutation include:
 
   - `query`: The specific query you'd like to send to the server
   - `post-mutation`: A symbol indicating a mutation to run after the load completes
@@ -401,18 +412,26 @@
   - `without`: A set of keywords that should be (recursively) removed from `query`
   - `refresh`: A vector of keywords that should cause re-rendering after the load.
   - `parallel`: True or false. If true, bypasses the sequential network queue
-  - `ident`: An ident. Used if you want the query to be morphed into an ident join. Used by
-  `load-field`.
-  - `field`: A keyword. Used if you want to focus the query to a specific single item. Used by
-  `load-field`.
+  - `target`: A key path where the result should be move to when the load is complete.
   - `marker`: True or false. If true, places a loading marker in place of the first top-level key in the query,
     of in place of the given database object if `ident` and `field` are set (e.g. by `load-field`)
 
   For most direct use-cases you'll probably skip using the `load-field` specific parameters. You can read
   the source of `load-field` if you'd like to simulate it by hand.
 
-  The most common use for a direct call to the `untangled/load` mutation is obtaining a value from the server
-  after running some mutation that had a (potential) remote effect.
+  For example:
+
+  ```
+  (load-data reconciler [:prop])
+  ```
+
+  is a simple helper that is ultimately identical to:
+
+  ```
+  (om/transact! reconciler '[(untangled/load {:query [:prop]}) :ui/loading-data])
+  ```
+
+  (the follow-on read is to ensure load markers update).
 
   #### Getting a Remote Value after a Mutation
 
@@ -439,11 +458,12 @@
       - Non-opaque reasoning
       - No need to write parser logic to figure out if you want to do remote reads
   - The costs are:
-      - The UI is aware of what is remote, and what is local (in stock Om, the UI is completely unconcerned
-        about remoting.)
+      - The UI is aware of what is remote, and what is local (in stock Om, the UI *can be* completely unconcerned
+        about remoting, though in practice you want to trigger this kind of thing from the UI an expose it as
+        some kind of mutation.)
 
-  In practice, we've found that the idea that something involves a server is pretty clear-cut, so the ability
-  to completely abstract it away really isn't that necessary pragmatically, and the cost of writing
+  In practice, we've found that the idea that something involves a server is pretty clear-cut even at the UI layer,
+  so the ability to completely abstract it away really isn't that necessary pragmatically, and the cost of writing
   the behind-the-scenes logic related making a parser trigger remote reads is somewhat high.
 
   #### A bit More About How it Works
@@ -467,7 +487,7 @@
 
   - Pulls an item from the queue (or \"blocks\" when empty)
   - Sends it over the network
-  - Updates the marker in the app state to `loading` (which causes a re-render, so you can render loading UI)
+  - Updates the marker in the app state to `loading` (which causes a re-render, so you can show loading indicators)
   - \"waits\" for the response
       - On success: merges the data
       - On error: updates the state marker to an error state (which re-renders allowing the UI to show error UI)
@@ -493,15 +513,14 @@
 
   ### Data merge
 
-  Untangled will automatically merge the result of loads into the application client database.
-  It overrides the built-in Om
-  shallow merge. Untangled's data merge has a number of extension that are useful for
+  Untangled will automatically merge (and normalize) the result of loads into the application client database.
+  Untangled overrides the built-in Om shallow merge to a merge that has a number of extension that are useful for
   simple application reasoning:
 
   #### Deep Merge
 
   Untangled merges the response via a deep merge, meaning that existing data is not wiped out by default. Unfortunately,
-  this causes a different problem. Let's say you have two UI components that ask for similar information:
+  this causes a different problem. Let's say you have two UI components (with the same Ident) that ask for similar information:
 
   Component A asks for [:a]
   Component A2 asks for [:a :b]
@@ -525,11 +544,11 @@
   #### Normalization
 
   Normalization is always *on* in Untangled because your application will not work correctly if you don't normalize the
-  data in your database. Loads must use real composed queries from the UI for normalization to work (the om `get-query` function adds info to assit
-  with normalization).
+  data in your database. Loads must use real composed queries from the UI for normalization to work (the om `get-query` 
+  function adds info to assit with normalization).
 
-  Therefore, you almost *never* want to use a hand-written query that has not been placed on a `defui`. It is perfectly
-  acceptable to define queries via `defui` to ensure normalization will work, and this will commonly be the case if your
+  Therefore, you almost *never* want to use a hand-written query that has not been placed on a `defui`. **It is perfectly
+  acceptable to define queries via `defui` to ensure normalization will work**, and this will commonly be the case if your
   UI needs to ask for data in a structure different from what you want to run against the server.
 
   For example, say we have some items in our database, and we're planning on showing them grouped by category. We *could*
@@ -587,7 +606,7 @@
 
   #### Post Mutations
 
-  We've seen the power of using component to generate queries that are simple for the server (even though the UI might
+  We've seen the power of using a component to generate queries that are simple for the server (even though the UI might
   want to display the result in a more complex way). Now, we'll finish the example by showing you how post mutations
   can complete the story (and for Om users, complete your understanding of why a custom parser isn't necessary in Untangled).
 
@@ -612,11 +631,11 @@
   We all understand doing these kinds of transforms, so this technique gives some real concrete advantages overall:
 
   - Simple query to the server (only have to write one query handler)
-      - Independent of the server's database structure (do items belong to categories, or just have them, etc).
+      - Independent of the server's database structure (do items belong to categories, or just have them? etc).
   - Simple layout in resulting UI database (normalized into tables and a graph)
   - Straightforward data transform into what we want to show
 
-  So, let's add in the idea that the UI really wants to show a Toolbar that contains the items
+  So, let's assume that the UI really wants to show a Toolbar that contains the items
   grouped by category, but our sample load is as before.
 
   The Untangled post-mutation can defined as:
@@ -764,10 +783,22 @@
 
   You can have any number of fallbacks in a tx, and they will run in order if the transaction fails.
 
-  TODO: Clearing the remaining send queue, etc. The API does not support (but needs to) optional clearing of
-  the remainder of the send queue on the client as part of fallback handling. This might be necessary, say, in the case
-  where the tx that failed indicates the app state is invalid...additional network interactions are probably all going to
-  fail. What you want to do is trigger some kind of state reload to restore sanity.
+  #### Clearing Network Queue
+
+  If the server sends back a failure it may be desirable to clear any pending network requests from the client
+  network queue. For example, if you're adding an item to a list and get a server error you might have a mutation waiting
+  in your network queue that was some kind of modification to that (now failed) item. Continuing the network processing
+  might just cause more errors.
+
+  The UntangledApplication protocol (implemented by your client app) includes the protocol method
+  `clear-pending-remote-requests!` which will drain all pending network requests.
+
+  ```
+  (untangled.client.core/clear-pending-remote-requests! my-app)
+  ```
+
+  A common recovery strategy from errors could be to clean the network queue and run a mutation that resets your application
+  to a known state, possibly loading sane state from the server.
 
   #### Remote reads after a mutation
 
