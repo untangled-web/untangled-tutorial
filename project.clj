@@ -63,6 +63,19 @@
                                        :output-dir     "resources/public/js/specs"
                                        :parallel-build true
                                        }}
+                       {:id           "i18n"
+                        :source-paths ["src/devguide" "src/shared"]
+                        :compiler     {:output-to     "i18n/out/compiled.js"
+                                       :main          untanged-devguide.guide
+                                       :output-dir    "i18n/out"
+                                       :optimizations :whitespace
+                                       :modules {}
+                                       :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
+                                                        :requires ["cljsjs.codemirror"]
+                                                        :file     "resources/public/codemirror/closebrackets-min.js"}
+                                                       {:provides ["cljsjs.codemirror.addons.matchbrackets"]
+                                                        :requires ["cljsjs.codemirror"]
+                                                        :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
                        {:id           "app"
                         :figwheel     true
                         :source-paths ["src/exercise-app" "dev/client"]

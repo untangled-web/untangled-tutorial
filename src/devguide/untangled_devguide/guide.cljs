@@ -20,12 +20,14 @@
     untangled-devguide.I-Building-A-Server-Exercises
     untangled-devguide.J-Putting-It-Together
     untangled-devguide.K-Testing
+    untangled-devguide.L-Internationalization
     untangled-devguide.M10-Advanced-UI
     untangled-devguide.M30-Advanced-Mutation
     untangled-devguide.M40-Advanced-Server-Topics
     untangled-devguide.Z-Further-Reading
     untangled-devguide.Z-Glossary
     untangled-devguide.Z-Query-Quoting
+    app.i18n.default-locale
     [devtools.core :as devtools]))
 
 (defonce devtools-installed (devtools/install!))
