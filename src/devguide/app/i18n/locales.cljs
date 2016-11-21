@@ -5,9 +5,7 @@
   goog.module.ModuleLoader
   [goog.module.ModuleManager :as module-manager]
   [untangled.i18n.core :as i18n]
-  app.i18n.en-US
-  app.i18n.de
-  app.i18n.es)
+  app.i18n.en)
  (:import goog.module.ModuleManager))
 
 (defonce manager (module-manager/getInstance))
@@ -15,10 +13,20 @@
 (defonce
  modules
  #js
- {"en-US" "/en-US.js", "de" "/de.js", "es" "/es.js"})
+ {"en" "js/pages/app/i18n/en.js",
+  "de" "js/pages/app/i18n/de.js",
+  "es" "js/pages/app/i18n/es.js"})
 
-(defonce module-info #js {"en-US" [], "de" [], "es" []})
+(defonce module-info #js {"en" [], "de" [], "es" []})
 
-(defonce ^:export loader (let [loader (goog.module.ModuleLoader.)] (.setLoader manager loader) (.setAllModuleInfo manager module-info) (.setModuleUris manager modules) loader))
+(defonce
+ ^:export
+ loader
+ (let
+  [loader (goog.module.ModuleLoader.)]
+  (.setLoader manager loader)
+  (.setAllModuleInfo manager module-info)
+  (.setModuleUris manager modules)
+  loader))
 
-(defn set-locale [l] (js/console.log (str "LOADING ALTERNATE LOCALE: " l)) (if (exists? js/i18nDevMode) (do (js/console.log (str "LOADED ALTERNATE LOCALE in dev mode: " l)) (reset! i18n/*current-locale* l)) (.execOnLoad manager l (fn after-locale-load [] (js/console.log (str "LOADED ALTERNATE LOCALE: " l)) (reset! i18n/*current-locale* l)))))
+(defn ^:export set-locale [l] (reset! i18n/*current-locale* l) (try (.execOnLoad manager l (fn after-locale-load [] (reset! i18n/*current-locale* l))) (catch js/Object e)))

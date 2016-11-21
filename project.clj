@@ -36,7 +36,8 @@
             [lein-doo "0.1.7" :exclusions [org.clojure/tools.reader]]
 
             ; Internationalization extraction/generation
-            [navis/untangled-lein-i18n "0.1.2" :exclusions [org.apache.maven.wagon/wagon-provider-api org.codehaus.plexus/plexus-utils org.clojure/tools.cli]]]
+            [navis/untangled-lein-i18n "0.2.0-SNAPSHOT" :exclusions [org.clojure/clojure org.apache.maven.wagon/wagon-provider-api
+                                                                     org.clojure/tools.cli org.codehaus.plexus/plexus-utils]]]
 
   :clean-targets ^{:protect false} ["resources/public/js" "target"]
 
@@ -49,10 +50,11 @@
                  :with-repl    true}
 
   ; i18n lein plugin config
-  :untangled-i18n {:default-locale        "en-US"
-                   :translation-namespace "app.i18n"
+  :untangled-i18n {:translation-namespace "app.i18n"
                    :source-folder         "src/devguide"
-                   :target-build          "i18n"}
+                   :translation-build     "i18n"
+                   :po-files              "msgs"
+                   :production-build      "pages"}
 
   :cljsbuild {:builds [{:id           "test"
                         :figwheel     true
@@ -65,11 +67,10 @@
                                        }}
                        {:id           "i18n"
                         :source-paths ["src/devguide" "src/shared"]
-                        :compiler     {:output-to     "i18n/out/compiled.js"
+                        :compiler     {:output-to     "resources/public/js/i18n.js"
+                                       :output-dir    "resources/public/js/i18n"
                                        :main          untanged-devguide.guide
-                                       :output-dir    "i18n/out"
                                        :optimizations :whitespace
-                                       :modules {}
                                        :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                         :requires ["cljsjs.codemirror"]
                                                         :file     "resources/public/codemirror/closebrackets-min.js"}
@@ -110,13 +111,14 @@
                                                          :file     "resources/public/codemirror/matchbrackets-min.js"}]}}
                        {:id           "pages"
                         :source-paths ["src/devguide" "src/pages" "src/shared"]
-                        :compiler     {
-                                       :main          core
-                                       :devcards      true
-                                       :asset-path    "js/pages"
-                                       :output-to     "resources/public/js/pages.js"
-                                       :output-dir    "resources/public/js/pages"
+                        :compiler     {:devcards      true
+                                       :asset-path    "js"
+                                       :output-dir    "resources/public/js"
                                        :optimizations :advanced
+                                       :source-map    true
+                                       :modules       {:cljs-base {:output-to "resources/public/js/pages.js"}
+                                                       :de        {:output-to "resources/public/js/de.js" :entries #{"app.i18n.de"}}
+                                                       :es        {:output-to "resources/public/js/es.js" :entries #{"app.i18n.es"}}}
                                        :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                         :requires ["cljsjs.codemirror"]
                                                         :file     "resources/public/codemirror/closebrackets-min.js"}
@@ -134,7 +136,4 @@
                    :source-paths ["dev/server" "src/server" "src/shared"]
                    :repl-options {:init-ns          user
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
-                                  :port             7001}
-                   }
-             }
-  )
+                                  :port             7001}}})

@@ -13,7 +13,6 @@
  untangled.i18n.core/*loaded-translations*
  (fn [x] (assoc x "es" translations)))
 
-(if
- (exists? js/i18nDevMode)
- :noop
- (-> goog.module.ModuleManager .getInstance (.setLoaded "es")))
+(try
+ (-> goog.module.ModuleManager .getInstance (.setLoaded locale))
+ (catch js/Object e))

@@ -1,5 +1,5 @@
-(ns app.i18n.default-locale (:require app.i18n.en-US [untangled.i18n.core :as i18n]))
+(ns app.i18n.default-locale (:require app.i18n.en [untangled.i18n.core :as i18n]))
 
-(reset! i18n/*current-locale* "en-US")
+(reset! i18n/*current-locale* "en")
 
-(swap! i18n/*loaded-translations* #(assoc % :en-US app.i18n.en-US/translations))
+(swap! i18n/*loaded-translations* #(assoc % :en app.i18n.en/translations))

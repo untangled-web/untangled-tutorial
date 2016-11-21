@@ -10,15 +10,8 @@
             [om.next.impl.parser :as p]
             [om.dom :as dom]
             [untangled.i18n.core :as ic]
-            app.i18n.de
-            app.i18n.es
             [om.next :as om :refer [defui]]
             [untangled.client.mutations :as m]))
-
-;; FIXME: the i18n stuff needs work:
-;; 1. The module loading should be something that can be triggered automatically from changing locales
-;; 2. The lein plugin is all confused: asks you to put the module configs in the wrong place, doesn't give good error
-;;    messages or help, dies on NPE if configs are wrong, etc.
 
 (reset! ic/*loaded-translations* {"es" {"|This is a test" "Spanish for 'this is a test'"
                                         "|Hi, {name}"     "Ola, {name}"}})
@@ -166,11 +159,28 @@
 
 (defcard-doc
   "
-  ## Extracting Strings for Translation
+  ## Manually Installing Translations (NOT recommended)
+
+  The format for translations is rather simple, so you can hand-code translations if you care to. The
+  format of a translation entry key is \"context|msgkey\". So, for example the key for a `(tr \"Hi\")`
+  is \"|Hi\" and the key for `(trc \"male\" \"M\")` is \"male|M\".
+
+  Installing a translation map can be done as:
+
+  ```
+  (swap! untangled.i18n.core/*loaded-translations* assoc \"es\" {\"|This is a test\" \"Spanish for 'this is a test'\"})
+  ```
+
+  in other words there is a global atom that holds the currently-loaded translations as a map, keyed by locale. The
+  map entries are the abovementioned translation entry keys and the desired translation.
+
+  ## Using Tools to Generate Translation Files
+
+  ### Extracting Strings for Translation
 
   String extraction is done via the following process:
 
-  1. The application is compiled using `:whitespace` optimization. This provides a single Javascript file. The GNU
+  The application is compiled using `:whitespace` optimization. This provides a single Javascript file. The GNU
   utility xgettext can then be used to extract the strings. You can use something like Home Brew to install this
   utility.
 
@@ -178,115 +188,120 @@
   xgettext --from-code=UTF-8 --debug -k -ktr:1 -ktrc:1c,2 -ktrf:1 -o messages.pot compiled.js
   ```
 
-  A leiningen plugin exists for doing this step for you:
+  A leiningen plugin exists for doing this for you:
 
   ```
   (defproject boo \"0.1.0-SNAPSHOT\"
     ...
-    :plugins [navis/untangled-lein-i18n \"0.1.2\"]
+    :plugins [navis/untangled-lein-i18n \"0.2.0\"]
 
     :untangled-i18n {:default-locale        \"en\" ;; the default locale of your app
                      :translation-namespace \"app.i18n\" ;; the namespace for generating cljs translations
                      :source-folder         \"src\" ;; the target source folder for generated code
-                     :target-build          \"i18n\" ;; the build that will create i18n/out/compiled.js
-                     }
+                     :translation-build     \"i18n\" ;; The name of the cljsbuild to compile your code that has tr calls
+                     :po-files              \"msgs\" ;; The folder where you want to store gettext files  (.po/.pot)
+                     :production-build      \"prod\"} ;; The name of your production build
 
     :cljsbuild {:builds [{:id           \"i18n\"
                           :source-paths [\"src\"]
                           :compiler     {:output-to     \"i18n/out/compiled.js\"
-                                         ; BUG: At the moment you must put modules here, even though they are not used in this step
-                                         :modules       {}
                                          :main          entry-point
-                                         :optimizations :whitespace}}]})
+                                         :optimizations :whitespace}}
+                         {:id \"prod\"
+                          :source-paths [\"src\"]
+                          :compiler {:asset-path    \"js\"
+                                     :output-dir \"resources/public/js\"
+                                     :main       core
+                                     :output-to  \"resources/public/js/main.js\"
+                                     :optimizations :advanced
+                                     :source-map    true}}]})
   ```
 
   ```
   lein i18n extract-strings
   ```
 
-  should generate the file `i18n/msgs/messages.pot`.
+  should run a cljs build of your i18n build and then generate the file `msgs/messages.pot`.
 
-  ## Translating Strings
+  NOTE: This task will automatically merge the generated `.pot` file into any pre-existing `.po` files as a final step,
+  so updating translations will just involve sending off the locale-specific `.po` files.
+
+  ### Translating Strings
 
   Once you've extracted the strings to a POT file you may translate them as you would any other gettext app. We
   recommend the GUI program POEdit. You should end up with a number of translations in files that you place
-  in files like `i18n/msgs/es.po`, where `es` is the locale of the translation.
+  in files like `msgs/es.po`, where `es` is the locale of the translation. Note that the extract-strings lein task
+  will update these files with new (needed) translations for you. Generally you'll check your `.po` files into source
+  control in order to keep track of the translations you've already done.
 
   ## Generating Clojurescript Versions of the Translations
 
-  There are three ways of generating the cljs code for translations: manual, as code included in your main application,
-  and as Closure modules. The lein i18n plugin will generate modules that are compatible with dynamic loading in the
-  Google Closure environment (which requires a bit of extra manual work).
+  If you're using the i18n lein plugin, then there are two possible way to generate translation code: as loadable modules,
+  and as part of the final compiled application. If you have a lot of strings and locales it can save some initial start
+  time to use modules, at the expense of a more complicated project configuration.
 
-  The generation of the `cljs` files uses the `:source-folder` and `:translation-namespace` settings in the
-  `:untangled-i18n` section of your project to determine where to put the results:
+  The i18n plugin command is simple enough:
 
   ```
   lein i18n deploy-translations
   ```
 
-  ### Including the translations into your final application
+  and the overall configuration (without modules) is shown in the section on extracting the strings.
 
-  This is the simplest approach. You need only `require` the necessary translations from your main entry point file to
-  ensure that they are included.
+  If you want to use modules, there are a few more steps:
 
-  ### Translations During Development
+  1. Ensure you do *not* require any of your specific locales in any source file.
+  2. Include a module definition in your production cljs build for every locale you want to make dynamically
+  loadable. Be sure to use the locale name as the (keyword) key of the module.
 
-  You should specifically require all translation namespaces in a `user` namespace (which is only compiled in dev mode)
-  in order to make the translations available during development. The module loading does not work in dev mode. You
-  can avoid the js console error messages (which are harmless) by setting `js/i18nDevMode` to `true`.
-
-  ### Compiling the Translations into Modules (ALPHA QUALITY SUPPORT)
-
-  In order for this to work you should do the following things:
-
-  1. Read and understand the module loading documentation of Closure
-  2. Configure the following modules for your application (with optimizations): One for each locale, and one module for
-  your main. Your main should require the generated `default-locale` namespace (but not any of the others).
-  3. Use at least whitespace optimizations.
-  4. When you change locales, you need to trigger the module load. This looks something like this:
+  Something like the following should work:
 
   ```
-  (ns app.i18n.locales
-    (:require
-      goog.module
-      goog.module.ModuleLoader
-      [goog.module.ModuleManager :as module-manager]
-      [untangled.i18n.core :as i18n]
-      untangled-todomvc.i18n.en-US
-      untangled-todomvc.i18n.es-MX)
-    (:import goog.module.ModuleManager))
+  (defproject boo \"0.1.0-SNAPSHOT\"
+    ...
+    :plugins [navis/untangled-lein-i18n \"0.2.0\"]
 
-  (defonce manager (module-manager/getInstance))
+    :untangled-i18n {:default-locale        \"en\" ;; the default locale of your app
+                     :translation-namespace \"app.i18n\" ;; the namespace for generating cljs translations
+                     :source-folder         \"src\" ;; the target source folder for generated code
+                     :translation-build     \"i18n\" ;; The name of the cljsbuild to compile your code that has tr calls
+                     :po-files              \"msgs\" ;; The folder where you want to store gettext files  (.po/.pot)
+                     :production-build      \"prod\"} ;; The name of your production build
 
-  (defonce modules #js {\"es\" \"/es.js\", \"de\" \"/de.js\"})
-
-  (defonce module-info #js {\"es\" [], \"de\" []})
-
-  (defonce ^:export loader (let [loader (goog.module.ModuleLoader.)]
-                             (.setLoader manager loader)
-                             (.setAllModuleInfo manager module-info)
-                             (.setModuleUris manager modules) loader))
-
-  (defn ^:export set-locale [l]
-    (.execOnLoad manager l #(reset! i18n/*current-locale* l)))
-  ```
-
-  and have your UI code call the `set-locale` function defined above to both trigger the module load and change the UI
-  locale.
-
-  Your module config in your production build should look something like this (untested):
-
-  ```
-    :cljsbuild {:builds [{:id           \"production\"
+    :cljsbuild {:builds [{:id           \"i18n\"
                           :source-paths [\"src\"]
-                          :compiler     {:output-to     \"resources/public/main.js\"
-                                         :modules       {:de   {:output-to \"resource/public/de.js\", :entries #{\"app.i18n.de\"}},
-                                                         :es   {:output-to \"resource/public/es.js\", :entries #{\"app.i18n.es\"}},
-                                                         :main {:output-to \"resource/public/main.js\",
-                                                                :entries   #{\"app.core\"}}}
-                                         :optimizations :simple}}]})
+                          :compiler     {:output-to     \"i18n/out/compiled.js\"
+                                         :main          entry-point
+                                         :optimizations :whitespace}}
+                         {:id \"prod\"
+                          :source-paths [\"src\"]
+                          :compiler {:asset-path    \"js\"
+                                     :output-dir \"resources/public/js\"
+                                     :optimizations :advanced
+                                     :source-map    true
+                                     :modules       {;; The main program
+                                                     :cljs-base {:output-to \"resources/public/js/main.js \"}
+                                                     ;; One entry for each locale
+                                                     :de        {:output-to \"resources/public/js/de.js \" :entries #{\"app.i18n.de \"}}
+                                                     :es        {:output-to \"resources/public/js/es.js \" :entries #{\"app.i18n.es \"}}}}}]})
+  ```
+
+  ### Using the Generated Translation Code
+
+  The generated source will be in the namespace you configure in your project file (e.g. `app.i18n`). The generated
+  code will include a `locales.cljs` file. You should require this file and use the `set-locale` function within it.
+  This function will be set up to automatically load any dynamic locale modules (assuming you configured them correctly).
+
+  If you didn't use modules, then no dynamic loading will be attempted.
+
+  ```
+  (ns some.ui
+    (:require [app.i18n.locales :as l]))
+
+  ...
+  (l/set-locale \"es\") ; change the UI locale, possibly triggering a dynamic module load.
   ```
   ")
+
 
 
