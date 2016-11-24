@@ -115,10 +115,6 @@
                                        :asset-path    "js"
                                        :output-dir    "resources/public/js"
                                        :optimizations :advanced
-                                       :source-map    true
-                                       :modules       {:cljs-base {:output-to "resources/public/js/pages.js"}
-                                                       :de        {:output-to "resources/public/js/de.js" :entries #{"app.i18n.de"}}
-                                                       :es        {:output-to "resources/public/js/es.js" :entries #{"app.i18n.es"}}}
                                        :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                         :requires ["cljsjs.codemirror"]
                                                         :file     "resources/public/codemirror/closebrackets-min.js"}
