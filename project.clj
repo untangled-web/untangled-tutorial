@@ -27,7 +27,7 @@
   :source-paths ["src/server" "src/shared" "test/server" "test/shared" "src/devguide"]
   :test-paths ["test/server" "test/shared"]
 
-  :plugins [[lein-cljsbuild "1.1.4"]
+  :plugins [[lein-cljsbuild "1.1.5"]
 
             ; Run server side tests with spec output
             [com.jakemccrary/lein-test-refresh "0.17.0"]
@@ -114,6 +114,7 @@
                         :compiler     {:devcards      true
                                        :asset-path    "js"
                                        :output-dir    "resources/public/js"
+                                       :output-to      "resources/public/js/pages.js"
                                        :optimizations :advanced
                                        :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                         :requires ["cljsjs.codemirror"]
