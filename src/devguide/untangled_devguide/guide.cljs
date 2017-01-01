@@ -24,6 +24,7 @@
     untangled-devguide.M10-Advanced-UI
     untangled-devguide.M30-Advanced-Mutation
     untangled-devguide.M40-Advanced-Server-Topics
+    untangled-devguide.Z-Deploying-To-Heroku
     untangled-devguide.Z-Further-Reading
     untangled-devguide.Z-Glossary
     untangled-devguide.Z-Query-Quoting
