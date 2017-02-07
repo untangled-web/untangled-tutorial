@@ -16,7 +16,7 @@
                  [lein-doo "0.1.7" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/core.cache "0.6.5"]
-                 [navis/untangled-client "0.7.0-SNAPSHOT"]
+                 [navis/untangled-client "0.7.0"]
                  [cljsjs/d3 "3.5.7-1"]
                  [cljsjs/victory "0.9.0-0"]
                  [ring/ring-codec "1.0.1"]
