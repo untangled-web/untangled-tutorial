@@ -2,7 +2,7 @@
   (:require-macros [cljs.test :refer [is]]
                    [untangled-devguide.tutmacros :refer [untangled-app]])
   (:require [devcards.core :as dc :include-macros true :refer-macros [defcard defcard-doc dom-node]]
-            [untangled.i18n :refer-macro [tr trc trf]]
+            [untangled.i18n :refer-macros [tr trc trf]]
             yahoo.intl-messageformat-with-locales
             [untangled.client.cards :refer [untangled-app]]
             [untangled.client.core :as uc]
