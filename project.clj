@@ -3,22 +3,24 @@
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
-                 [org.clojure/clojurescript "1.9.293"]
+                 [org.clojure/clojurescript "1.9.456"]
                  [org.omcljs/om "1.0.0-alpha47"]
                  [com.datomic/datomic-free "0.9.5404" :exclusions [org.clojure/tools.cli]]
-                 [com.google.guava/guava "19.0"]
+                 [com.google.guava/guava "20.0"]
                  [commons-codec "1.10"]
                  [commons-io "2.5"]
                  [org.clojure/core.async "0.2.391"]
                  [http-kit "2.2.0"]
-                 [bidi "2.0.9"]
+                 [bidi "2.0.16"]
                  [clj-time "0.11.0"]
                  [lein-doo "0.1.7" :scope "test"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.clojure/core.cache "0.6.5"]
-                 [navis/untangled-client "0.6.0"]
+                 [navis/untangled-client "0.7.0-SNAPSHOT"]
                  [cljsjs/d3 "3.5.7-1"]
                  [cljsjs/victory "0.9.0-0"]
+                 [ring/ring-codec "1.0.1"]
+                 [ring/ring-core "1.5.0"]
                  [navis/untangled-server "0.6.2"]
                  [navis/untangled-spec "0.3.9" :scope "test"]
                  [navis/untangled-datomic "0.4.11"]]
@@ -30,7 +32,7 @@
   :plugins [[lein-cljsbuild "1.1.5"]
 
             ; Run server side tests with spec output
-            [com.jakemccrary/lein-test-refresh "0.17.0"]
+            [com.jakemccrary/lein-test-refresh "0.18.0"]
 
             ; Used for running CI (command line) client tests
             [lein-doo "0.1.7" :exclusions [org.clojure/tools.reader]]
@@ -114,7 +116,7 @@
                         :compiler     {:devcards      true
                                        :asset-path    "js"
                                        :output-dir    "resources/public/js"
-                                       :output-to      "resources/public/js/pages.js"
+                                       :output-to     "resources/public/js/pages.js"
                                        :optimizations :advanced
                                        :foreign-libs  [{:provides ["cljsjs.codemirror.addons.closebrackets"]
                                                         :requires ["cljsjs.codemirror"]
@@ -126,7 +128,7 @@
   :profiles {
              :dev {
                    :dependencies [[devcards "0.2.2"]
-                                  [figwheel-sidecar "0.5.7" :exclusions [ring/ring-core org.clojure/tools.analyzer.jvm org.clojure/tools.analyzer org.clojure/core.memoize org.clojure/data.priority-map]]
+                                  [figwheel-sidecar "0.5.9"]
                                   [com.cemerick/piggieback "0.2.1"]
                                   [binaryage/devtools "0.6.1"]
                                   [cljsjs/codemirror "5.8.0-0"]]
