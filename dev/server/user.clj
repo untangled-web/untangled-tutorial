@@ -34,6 +34,10 @@
 
 ;;SERVER
 
+; IMPORTANT: DO NOT REMOVE THIS!!! CLJS compile copies source into the
+; resources folder, which has to be on your classpath; however
+; tools refresh will by default look there, and having that duplication
+; will cause you nightmares on server code reloads!!!
 (set-refresh-dirs "src/server" "specs/server" "dev/server")
 
 (def system (atom nil))

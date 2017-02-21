@@ -103,6 +103,15 @@
 
   The two are equivalent. The latter will do a recursive transform, which can be handy.
 
+  Server side:
+
+  IMPORTANT: DO NOT REMOVE `set-refresh-dirs` from the `user.clj` file!!!
+  The CLJS compile copies all source into the
+  resources folder, which has to be on your classpath; however
+  tools refresh will by default end up looking there, which will cause weird
+  duplication and cause you nightmares on server code reloads!!!
+
+
   [Let's start with a Quick Tour.](#!/untangled_devguide.A_Quick_Tour)
 
   ")
